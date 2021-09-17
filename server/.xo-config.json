@@ -1,0 +1,8 @@
+{
+  "space": true,
+  "prettier": true,
+  "rules": {
+    "no-use-extend-native/no-use-extend-native": "off",
+    "no-await-in-loop": "off"
+  }
+}
