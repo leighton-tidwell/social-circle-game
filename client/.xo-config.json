@@ -1,0 +1,27 @@
+{
+  "space": true,
+  "prettier": true,
+  "extends": "xo-react",
+  "envs": ["es2020", "browser", "jest"],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-sort-props": "off",
+    "react/boolean-prop-naming": "off",
+    "react/state-in-constructor": "off",
+    "react/no-array-index-key": "off",
+    "max-params": "off",
+    "complexity": "off",
+    "import/extensions": "off",
+    "node/file-extension-in-import": "off"
+  },
+  "overrides": [
+    {
+      "files": "src/pages/_app.js",
+      "rules": {
+        "react/prop-types": "off",
+        "import/no-unassigned-import": "off"
+      }
+    }
+  ],
+  "ignores": [".gitlab", ".storybook", "build", "next.config.js"]
+}
