@@ -1,36 +1,50 @@
 import React from 'react';
-import { Center, Box, Heading, Button, Stack } from '@chakra-ui/react';
+import { Link } from 'react-router-dom';
+import { Button } from '@chakra-ui/react';
+import { SplashScreenContainer } from '../../components/';
 
-const SplashScreen = () => (
-  // Const onJoinMatch = () => {
-  //   handleJoinMatch();
-  // };
+const SplashScreen = () => {
+  return (
+    <SplashScreenContainer>
+      <Button
+        colorScheme="blueButton"
+        isFullWidth
+        fontSize="1.5em"
+        height="2.5em"
+        fontWeight="400"
+      >
+        <Link to="/game/find-match">Find A Match</Link>
+      </Button>
+      <Button
+        colorScheme="purpleButton"
+        isFullWidth
+        fontSize="1.5em"
+        height="2.5em"
+        fontWeight="400"
+      >
+        <Link to="/game/join-match">Join A Match</Link>
+      </Button>
+      <Button
+        isFullWidth
+        fontSize="1.5em"
+        height="2.5em"
+        fontWeight="400"
+        as="button"
+        border="1px"
+        borderRadius="8px"
+        color="brand.secondary"
+        borderColor="brand.secondary"
+        transition="all .2s ease"
+        bg="brand.white"
+        _hover={{
+          bg: 'brand.secondary',
+          color: 'brand.white',
+        }}
+      >
+        <Link to="/game/host-match">Host A Match</Link>
+      </Button>
+    </SplashScreenContainer>
+  );
+};
 
-  // const onHostMatch = () => {
-  //   handleHostMatch();
-  // };
-
-  // const onFindMatch = () => {
-  //   handleFindMatch();
-  // };
-
-  <Center h="100vh" w="100%">
-    <Box boxShadow="xl" bg="blue.600" borderRadius="10px" p={5}>
-      <Heading align="center" color="white">
-        The Circle
-      </Heading>
-      <Stack spacing={4} pt={5} direction="row" align="center">
-        <Button colorScheme="blue" size="lg">
-          Find a Match
-        </Button>
-        <Button colorScheme="blue" size="lg">
-          Host a Match
-        </Button>
-        <Button colorScheme="green" size="lg">
-          Join a Match
-        </Button>
-      </Stack>
-    </Box>
-  </Center>
-);
 export default SplashScreen;

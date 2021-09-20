@@ -16,7 +16,7 @@ const theme = extendTheme({
       white: '#FFFFFF',
       offtext: '#636363',
     },
-    purpleNavButton: {
+    blueButton: {
       50: '#667EEA',
       100: '#667EEA',
       200: '#667EEA',
@@ -28,12 +28,26 @@ const theme = extendTheme({
       800: '#667EEA',
       900: '#667EEA',
     },
+    purpleButton: {
+      50: '#69399A',
+      100: '#69399A',
+      200: '#69399A',
+      300: '#69399A',
+      400: '#69399A',
+      500: '#69399A',
+      600: '#69399A',
+      700: '#69399A',
+      800: '#69399A',
+      900: '#69399A',
+    },
   },
 });
 
 const MyApp = ({ Component, pageProps }) => (
   <ChakraProvider theme={theme}>
-    <Component {...pageProps} />
+    <div suppressHydrationWarning>
+      <Component {...pageProps} />
+    </div>
   </ChakraProvider>
 );
 
