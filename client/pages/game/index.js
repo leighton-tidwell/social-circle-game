@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { io } from 'socket.io-client';
 const socket = io(
@@ -14,6 +14,9 @@ import {
   Profile,
 } from '../../components/';
 const GamePage = () => {
+  const [lobbyID, setLobbyId] = useState(null);
+  const [isHost, setIsHost] = useState(false);
+
   useEffect(() => {
     socket.on('connect', () => {
       console.log('you have connected');
@@ -30,7 +33,12 @@ const GamePage = () => {
               <SplashScreen />
             </Route>
             <Route path="/game/find-match" exact>
-              <FindMatch socket={socket} />
+              <FindMatch
+                onStartGame={setLobbyId}
+                onHost={setIsHost}
+                isHost={isHost}
+                socket={socket}
+              />
             </Route>
             <Route path="/game/join-match" exact>
               <JoinMatch />

@@ -11,23 +11,18 @@ const UserSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    required: true,
   },
   age: {
     type: String,
-    required: true,
   },
   relationshipStatus: {
     type: String,
-    required: true,
   },
   bio: {
     type: String,
-    required: true,
   },
   profilePicture: {
     type: String,
-    required: true,
   },
   host: {
     type: Boolean,

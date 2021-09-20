@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const bodyParser = require('bodyParser');
 const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -20,6 +21,7 @@ db.once('open', function () {
 
 const app = express();
 app.use(cors());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const server = http.createServer(app);
 const uuid = new ShortUniqueId({ length: 10 });
@@ -31,14 +33,27 @@ const io = new Server(server, {
   },
 });
 
-app.get('/', (req, res) => {
-  res.send('<h1>Hello from your mom</h1>');
+app.get('/total-games', async (req, res) => {
+  const totalGames = await userModel.find().distinct('gameid');
+  res.json({ totalGames: totalGames.length });
+});
+
+app.get('/total-players', async (req, res) => {
+  const totalPlayers = await userModel.find().distinct('socketid');
+  res.json({ totalPlayers: totalPlayers.length });
+});
+
+app.get('/player-information', async (req, res) => {
+  const socketid = req.body.socketid;
+  const playerData = await userModel.find({ socketid: socketid });
+  if (playerData.length === 0) return res.json({ invalid: true });
+  return res.json({ playerData });
 });
 
 io.on('connection', (socket) => {
   socket.join('IDLE_ROOM');
 
-  socket.on('find-match', () => {
+  socket.on('find-match', async () => {
     console.log(`Socket id: ${socket.id} is requesting to find a match.`);
     socket.join('FIND_MATCH');
     socket.leave('IDLE_ROOM');
@@ -51,30 +66,56 @@ io.on('connection', (socket) => {
         `A new game is starting with the unique lobby id: ${newLobby}.`
       );
 
-      clientsFindingMatch.forEach((clientId) => {
+      const hostIndex = Math.floor(
+        Math.random() * (clientsFindingMatch.size - 0) + 0
+      );
+
+      console.log(hostIndex, 'random selected host');
+
+      let i = 0;
+      let hostSocketId = '';
+      for (const clientId of clientsFindingMatch) {
         const clientSocket = io.sockets.sockets.get(clientId);
         clientSocket.join(newLobby);
         clientSocket.leave('FIND_MATCH');
-      });
+
+        const newUserData = {
+          gameid: newLobby,
+          socketid: clientId,
+        };
+
+        if (i === hostIndex) {
+          newUserData.host = true;
+          hostSocketId = clientSocket.id;
+        }
+
+        const newUser = new userModel(newUserData);
+        try {
+          await newUser.save();
+          i++;
+        } catch (error) {
+          console.log(error);
+        }
+      }
 
       console.log(
         io.sockets.adapter.rooms.get(newLobby),
         'list of sockets in room'
       );
 
-      io.to(newLobby).emit('start-game');
+      io.to(newLobby).emit('start-game', {
+        gameid: newLobby,
+        hostid: hostSocketId,
+      });
     }
   });
 
   socket.on('save-profile', async (user) => {
-    const newUser = new userModel(user);
-
     try {
-      // Get all users from room and determine if one is a host yet
-      const host = await userModel.find({ gameid: user.gameid, host: true });
-      if (host.length === 0) user.host = true;
-
-      await newUser.save();
+      await userModel.findOneAndUpdate(
+        { gameid: user.gameid, socketid: user.socketid },
+        user
+      );
       socket.emit('profile-saved-successfully');
     } catch (error) {
       console.log(error);
@@ -116,6 +157,13 @@ io.on('connection', (socket) => {
     socket.join(newLobby);
   });
 
+  socket.on('start-match', ({ gameid, hostid }) => {
+    io.to(newLobby).emit('start-game', {
+      gameid: gameid,
+      hostid: hostid,
+    });
+  });
+
   socket.on('disconnect', () => {
     console.log(`${socket.id} has disconnected.`);
   });
@@ -129,6 +177,7 @@ io.of('/').adapter.on('join-room', (room, id) => {
   console.log(`socket ${id} has joined room ${room}`);
 });
 
-server.listen(3001, () => {
-  console.log('listening on *:3001');
+const port = process.env.PORT || 3001;
+server.listen(port, () => {
+  console.log(`listening on *:${port}`);
 });

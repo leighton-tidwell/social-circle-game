@@ -3,11 +3,16 @@ import { Button, Text, Spinner } from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
 import { SplashScreenContainer } from '../../components/';
 
-const FindMatch = ({ socket }) => {
+const FindMatch = ({ socket, onStartGame, onHost, isHost }) => {
   let history = useHistory();
 
-  socket.on('start-game', () => {
-    history.push('/game/edit-profile');
+  socket.on('start-game', ({ gameid, hostid }) => {
+    onStartGame(gameid);
+    if (hostid === socket.id) {
+      onHost(true);
+      return history.push('/game/host-wait');
+    }
+    return history.push('/game/edit-profile');
   });
 
   const handleCancelMatch = () => {
