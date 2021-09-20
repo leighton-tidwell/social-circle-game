@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { io } from 'socket.io-client';
-const socket = io(
-  `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}:${process.env.NEXT_PUBLIC_CIRCLE_PORT}`
-);
+const socketString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
+  process.env.NEXT_PUBLIC_CIRCLE_PORT
+    ? `:${process.env.NEXT_PUBLIC_CIRCLE_PORT}`
+    : ''
+}`;
+const socket = io(socketString);
 
 import {
   SplashScreen,
