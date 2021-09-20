@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Text, Spinner } from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
 import { SplashScreenContainer } from '../../components/';
 
 const FindMatch = ({ socket, onStartGame, onHost, isHost }) => {
+  const [searchingPlayers, setSearchingPlayers] = useState(0);
+  const [matchPlayers, setMatchPlayers] = useState(0);
   let history = useHistory();
 
   socket.on('start-game', ({ gameid, hostid }) => {
@@ -15,6 +17,14 @@ const FindMatch = ({ socket, onStartGame, onHost, isHost }) => {
     return history.push('/game/edit-profile');
   });
 
+  socket.on(
+    'update-finding-match-count',
+    ({ playersSearching, playersRequired }) => {
+      setSearchingPlayers(playersSearching);
+      setMatchPlayers(playersRequired);
+    }
+  );
+
   const handleCancelMatch = () => {
     socket.emit('stop-find-match');
   };
@@ -25,8 +35,9 @@ const FindMatch = ({ socket, onStartGame, onHost, isHost }) => {
   return (
     <SplashScreenContainer>
       <Text fontSize="1.5em" fontWeight="500">
-        Finding a match <Spinner />
+        Finding a match ({searchingPlayers}/{matchPlayers})
       </Text>
+      <Spinner />
       <Button
         colorScheme="purpleButton"
         isFullWidth

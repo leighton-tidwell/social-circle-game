@@ -13,18 +13,25 @@ const Rules = () => (
   <Box bg="brand.white" p={5} mt={5} mb={5}>
     <Container maxW="container.xl">
       <Stack direction={['column', null, 'column', null, 'row']} pt={5} pb={5}>
-        <Box position="relative" minHeight="400px" width="50%">
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          position="relative"
+          minHeight="350px"
+          width={['100%', null, '50%', null, '50%']}
+        >
           <Box
             position="absolute"
-            height="400px"
-            width="400px"
+            height="350px"
+            width="350px"
             p={3}
             background="brand.main"
           >
             <Box
               position="absolute"
-              height="375px"
-              width="375px"
+              height="325px"
+              width="325px"
               background="brand.white"
               backgroundImage="url(/assets/rules.png)"
               backgroundPosition="center"

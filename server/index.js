@@ -50,6 +50,8 @@ app.get('/player-information', async (req, res) => {
   return res.json({ playerData });
 });
 
+const MAX_PLAYERS = 2;
+
 io.on('connection', (socket) => {
   socket.join('IDLE_ROOM');
 
@@ -60,7 +62,11 @@ io.on('connection', (socket) => {
     socket.join(uuid());
 
     const clientsFindingMatch = io.sockets.adapter.rooms.get('FIND_MATCH');
-    if (clientsFindingMatch.size === 2) {
+    io.to('FIND_MATCH').emit('update-finding-match-count', {
+      playersSearching: clientsFindingMatch.size,
+      playersRequired: MAX_PLAYERS,
+    });
+    if (clientsFindingMatch.size === MAX_PLAYERS) {
       const newLobby = uuid();
       console.log(
         `A new game is starting with the unique lobby id: ${newLobby}.`
@@ -144,7 +150,19 @@ io.on('connection', (socket) => {
 
   socket.on('join-match', (room) => {
     console.log(`Socket id: ${socket.id} is requesting to join match ${room}.`);
-    socket.join(room);
+
+    const totalPlayers = io.sockets.adapter.rooms.get(room).size;
+    if (totalPlayers !== MAX_PLAYERS) {
+      socket.leave('IDLE_ROOM');
+      socket.join(room);
+      socket.emit('join-match');
+      io.to(room).emit('player-joined', {
+        totalPlayers: totalPlayers + 1,
+        maxPlayers: MAX_PLAYERS,
+      });
+    } else {
+      socket.emit('failed-join', { reason: 'full' });
+    }
   });
 
   socket.on('host-match', () => {
@@ -157,8 +175,30 @@ io.on('connection', (socket) => {
     socket.join(newLobby);
   });
 
-  socket.on('start-match', ({ gameid, hostid }) => {
-    io.to(newLobby).emit('start-game', {
+  socket.on('start-hosted-match', async ({ gameid, hostid }) => {
+    const clientsInHostedLobby = io.sockets.adapter.rooms.get(gameid);
+
+    for (const clientId of clientsInHostedLobby) {
+      const clientSocket = io.sockets.sockets.get(clientId);
+
+      const newUserData = {
+        gameid,
+        socketid: clientId,
+      };
+
+      if (clientId === hostid) {
+        newUserData.host = true;
+      }
+
+      const newUser = new userModel(newUserData);
+      try {
+        await newUser.save();
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+    io.to(gameid).emit('start-game', {
       gameid: gameid,
       hostid: hostid,
     });

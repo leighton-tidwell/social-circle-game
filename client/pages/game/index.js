@@ -17,8 +17,12 @@ import {
   Profile,
 } from '../../components/';
 const GamePage = () => {
-  const [lobbyID, setLobbyId] = useState(null);
+  const [lobbyId, setLobbyId] = useState(null);
   const [isHost, setIsHost] = useState(false);
+
+  const handleLobbyChange = (lobby) => {
+    setLobbyId(lobby);
+  };
 
   useEffect(() => {
     socket.on('connect', () => {
@@ -44,19 +48,27 @@ const GamePage = () => {
               />
             </Route>
             <Route path="/game/join-match" exact>
-              <JoinMatch />
+              <JoinMatch socket={socket} onLobbyChange={handleLobbyChange} />
             </Route>
             <Route path="/game/host-match" exact>
-              <HostMatch />
+              <HostMatch
+                socket={socket}
+                onHost={setIsHost}
+                onLobbyChange={handleLobbyChange}
+              />
             </Route>
             <Route path="/game/host-match/lobby" exact>
-              <HostMatchLobby />
+              <HostMatchLobby
+                socket={socket}
+                isHost={isHost}
+                lobbyId={lobbyId}
+              />
             </Route>
-            <Route path="/game/join-match/lobby" exact>
-              Lobby for joining a match
+            <Route path="/game/profile/:id" exact>
+              <Profile socket={socket} lobbyId={lobbyId} />
             </Route>
             <Route path="/game/edit-profile" exact>
-              <Profile />
+              <Profile socket={socket} lobbyId={lobbyId} editable />
             </Route>
           </Switch>
         </Router>
