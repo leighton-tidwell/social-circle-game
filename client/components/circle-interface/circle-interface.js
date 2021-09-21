@@ -1,6 +1,6 @@
 import React, { useEffect, useContext } from 'react';
 import { Box, Flex, Stack, StackDivider, useToast } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { SocketContext } from '../../context/socket';
 import {
   HomeIcon,
@@ -14,6 +14,7 @@ import {
 const CircleInterface = ({ children, isHost, toggleChat }) => {
   const toast = useToast();
   const socket = useContext(SocketContext);
+  let history = useHistory();
 
   const getWindowHeight = () => {
     const doc = document.documentElement;
@@ -61,10 +62,22 @@ const CircleInterface = ({ children, isHost, toggleChat }) => {
       toggleChat(status);
     });
 
+    socket.on('host-disconnect', () => {
+      toast({
+        title:
+          'The host has disconnected, you will be sent back to the match screen.',
+        position: 'top',
+        isClosable: true,
+        variant: 'left-accent',
+      });
+      history.push('/game');
+    });
+
     return () => {
       socket.off('player-joined-circle');
       socket.off('player-disconnected');
       socket.off('toggle-circle-chat');
+      socket.off('host-disconnect');
     };
   }, []);
 

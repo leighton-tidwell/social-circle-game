@@ -254,11 +254,17 @@ io.on('connection', (socket) => {
         { socketid: socket.id },
         { disconnected: true, gameid: '' }
       );
-      const playerName = playerData.name;
+      const playerName = playerData.name || 'Host';
       const gameid = playerData.gameid;
-      io.to(gameid).emit('player-disconnected', {
-        playerName,
-      });
+      const isHost = playerData.host;
+      if (!isHost) {
+        io.to(gameid).emit('player-disconnected', {
+          playerName,
+        });
+      } else {
+        io.to(gameid).emit('host-disconnect');
+        io.socketsLeave(gameid);
+      }
     } catch (error) {
       console.log(error);
     } finally {
