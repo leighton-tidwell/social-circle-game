@@ -21,7 +21,8 @@ db.once('open', function () {
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 const server = http.createServer(app);
 const uuid = new ShortUniqueId({ length: 10 });
@@ -43,14 +44,23 @@ app.get('/total-players', async (req, res) => {
   res.json({ totalPlayers: totalPlayers.length });
 });
 
-app.get('/player-information', async (req, res) => {
+app.post('/list-players', async (req, res) => {
+  const gameid = req.body.gameid;
+  const playerList = await userModel.find({ gameid: gameid, host: false });
+  if (playerList.length === 0) return res.json({ invalid: true });
+
+  return res.json({ playerList });
+});
+
+app.post('/player-information', async (req, res) => {
   const socketid = req.body.socketid;
   const playerData = await userModel.find({ socketid: socketid });
   if (playerData.length === 0) return res.json({ invalid: true });
+
   return res.json({ playerData });
 });
 
-const MAX_PLAYERS = 2;
+const MAX_PLAYERS = 3;
 
 io.on('connection', (socket) => {
   socket.join('IDLE_ROOM');
@@ -118,11 +128,13 @@ io.on('connection', (socket) => {
 
   socket.on('save-profile', async (user) => {
     try {
+      console.log('Trying to save profile', user.name);
       await userModel.findOneAndUpdate(
         { gameid: user.gameid, socketid: user.socketid },
         user
       );
       socket.emit('profile-saved-successfully');
+      io.to(user.gameid).emit('player-joined-circle', { user });
     } catch (error) {
       console.log(error);
       socket.emit('profile-saved-unsuccessfully');
@@ -179,8 +191,6 @@ io.on('connection', (socket) => {
     const clientsInHostedLobby = io.sockets.adapter.rooms.get(gameid);
 
     for (const clientId of clientsInHostedLobby) {
-      const clientSocket = io.sockets.sockets.get(clientId);
-
       const newUserData = {
         gameid,
         socketid: clientId,

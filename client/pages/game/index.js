@@ -15,6 +15,7 @@ import {
   HostMatch,
   HostMatchLobby,
   Profile,
+  Home,
 } from '../../components/';
 const GamePage = () => {
   const [lobbyId, setLobbyId] = useState(null);
@@ -69,6 +70,9 @@ const GamePage = () => {
             </Route>
             <Route path="/game/edit-profile" exact>
               <Profile socket={socket} lobbyId={lobbyId} editable />
+            </Route>
+            <Route path="/game/home" exact>
+              <Home socket={socket} isHost={isHost} lobbyId={lobbyId} />
             </Route>
           </Switch>
         </Router>

@@ -22,7 +22,7 @@ const HostMatchLobby = ({ socket, lobbyId, isHost }) => {
 
   socket.on('start-game', ({ gameid, hostid }) => {
     if (isHost) {
-      return history.push('/game/host-wait');
+      return history.push('/game/home');
     }
     return history.push('/game/edit-profile');
   });

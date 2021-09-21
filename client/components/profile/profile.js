@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Stack,
@@ -13,10 +13,17 @@ import {
   CloseButton,
   Spinner,
 } from '@chakra-ui/react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { CircleInterface } from '../../components/';
+import axios from 'axios';
 
-const Profile = ({ socket, lobbyId, editable }) => {
+const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
+  process.env.NEXT_PUBLIC_CIRCLE_PORT
+    ? `:${process.env.NEXT_PUBLIC_CIRCLE_PORT}`
+    : ''
+}`;
+
+const Profile = ({ socket, lobbyId, editable, match }) => {
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [relationshipStatus, setRelationshipStatus] = useState('');
@@ -25,6 +32,7 @@ const Profile = ({ socket, lobbyId, editable }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   let history = useHistory();
+  const { id } = useParams();
 
   const openImageUpload = () => {
     document.getElementById('profile-upload').click();
@@ -142,21 +150,41 @@ const Profile = ({ socket, lobbyId, editable }) => {
   };
 
   socket.on('profile-saved-successfully', () => {
+    console.log('Got the saved profile message.');
     return history.push(`/game/profile/${socket.id}`);
   });
 
-  console.log('Inside profile component, lobbyid: ', lobbyId);
+  useEffect(async () => {
+    if (!id) return;
+    const {
+      data: { playerData },
+    } = await axios.post(`${serverString}/player-information`, {
+      socketid: id,
+    });
+    const fetchedPlayer = playerData[0];
+    setName(fetchedPlayer.name);
+    setAge(fetchedPlayer.age);
+    setRelationshipStatus(fetchedPlayer.relationshipStatus);
+    setBio(fetchedPlayer.bio);
+    setProfilePicture(fetchedPlayer.profilePicture);
+  }, []);
+
   return (
-    <CircleInterface>
+    <CircleInterface socket={socket}>
       {editable && (
-        <Stack direction="row" height="100%" width="100%" spacing="2em">
+        <Stack
+          direction={['column', null, 'column', null, 'row']}
+          height="100%"
+          width="100%"
+          spacing="2em"
+        >
           <Box
             display="flex"
             alignItems="center"
             justifyContent="center"
             backgroundColor="rgba(99,99,99,.17)"
             height="100%"
-            width="50%"
+            width={['100%', null, '100%', null, '50%']}
             backgroundImage={profilePicture ? `url(${profilePicture})` : ''}
             backgroundPosition="center center"
             backgroundSize="cover"
@@ -179,7 +207,7 @@ const Profile = ({ socket, lobbyId, editable }) => {
               </Text>
             </Box>
           </Box>
-          <Stack direction="column" width="50%">
+          <Stack direction="column" width={['100%', null, '100%', null, '50%']}>
             <Input
               size="lg"
               placeholder="Name"
@@ -240,6 +268,35 @@ const Profile = ({ socket, lobbyId, editable }) => {
             style={{ display: 'none' }}
             id="profile-upload"
           />
+        </Stack>
+      )}
+      {!editable && (
+        <Stack direction="row" height="100%" width="100%" spacing="2em">
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            backgroundColor="rgba(99,99,99,.17)"
+            height="100%"
+            width="50%"
+            backgroundImage={profilePicture ? `url(${profilePicture})` : ''}
+            backgroundPosition="center center"
+            backgroundSize="cover"
+          />
+          <Stack direction="column" width="50%">
+            <Text fontSize="2em" fontWeight="800">
+              {name}
+            </Text>
+            <Text fontSize="1.5em">
+              <b>Age:</b> {age}
+            </Text>
+            <Text fontSize="1.5em">
+              <b>Relationship Status:</b> {relationshipStatus}
+            </Text>
+            <Text fontSize="1.5em">
+              <b>Bio:</b> {bio}
+            </Text>
+          </Stack>
         </Stack>
       )}
     </CircleInterface>
