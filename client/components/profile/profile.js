@@ -175,7 +175,6 @@ const Profile = ({ socket, lobbyId, editable, match }) => {
         <Stack
           direction={{ xs: 'column', sm: 'column', md: 'row' }}
           height="100%"
-          height={{ xs: '90%', sm: '90%', md: '100%' }}
           width="100%"
           spacing="2em"
         >
@@ -244,8 +243,8 @@ const Profile = ({ socket, lobbyId, editable, match }) => {
             ></Textarea>
             <Button
               colorScheme="purpleButton"
-              fontSize={{ xs: '2em', sm: '1.5em' }}
-              height={{ xs: '5em', md: '2.5em' }}
+              fontSize={{ xs: '2em', md: '1.5em' }}
+              height={{ xs: '4em', md: '2.5em' }}
               fontWeight="400"
               onClick={handleSubmit}
               disabled={loading}

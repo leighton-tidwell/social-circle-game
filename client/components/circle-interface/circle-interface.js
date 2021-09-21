@@ -34,114 +34,110 @@ const CircleInterface = ({ socket, children }) => {
       justify="center"
       height="var(--app-height)"
       width="100vw"
-      minHeight="-webkit-fill-available"
       background="linear-gradient(90deg,rgba(102, 126, 234, 1) 0%,rgba(105, 57, 154, 1) 100%)"
     >
       <Box
-        width={['100%', null, '95%', null, '95%']}
+        width={{ xs: '100%', md: '95%' }}
         background="brand.white"
-        borderRadius="8px"
-        height={['100%', null, '95%', null, '80%']}
+        borderRadius={{ sm: '0px', md: '8px' }}
+        height={{ xs: '100%', md: '95%', lg: '80%' }}
       >
-        <Stack
-          direction={['column-reverse', null, 'column-reverse', null, 'row']}
-          height="100%"
-        >
+        <Stack direction={{ xs: 'column-reverse', lg: 'row' }} height="100%">
           <Box
-            borderRight={[null, null, null, null, '1px']}
-            borderTop={['1px', null, '1px', null, null]}
+            borderRight={{ lg: '1px' }}
+            borderTop={{ xs: '1px', lg: '0px' }}
             borderColor="brand.offtext"
-            height={['auto', null, 'auto', null, '100%']}
+            height={{ xs: 'auto', lg: '100%' }}
             display="flex"
             alignItems="center"
           >
             <Stack
               divider={<StackDivider borderColor="brand.offtext" />}
-              direction={['row', null, 'row', null, 'column']}
-              width={['100%', null, '100%', null, 'auto']}
-              display={['flex', null, 'flex', null, 'block']}
+              direction={{ xs: 'row', lg: 'column' }}
+              width={{ xs: '100%', lg: 'auto' }}
+              display={{ xs: 'flex', lg: 'block' }}
               justifyContent="center"
             >
               <Box
-                pl={[1, null, 1, null, 6]}
-                pr={[1, null, 1, null, 6]}
-                pb={[1, null, 1, null, 3]}
-                pt={[3, null, 3, null, 3]}
+                pl={{ xs: 1, lg: 6 }}
+                pr={{ xs: 1, lg: 6 }}
+                pb={{ xs: 1, lg: 3 }}
+                pt={{ xs: 3 }}
                 onClick={navigateHome}
                 cursor="pointer"
               >
                 <HomeIcon
                   color="brand.offtext"
                   fill="brand.offtext"
-                  height={['30px', null, '30px', null, '40px']}
-                  width={['30px', null, '30px', null, '40px']}
+                  height={{ xs: '32px', lg: '40px' }}
+                  width={{ xs: '32px', lg: '40px' }}
                 />
               </Box>
               <Box
-                pl={[1, null, 1, null, 6]}
-                pr={[1, null, 1, null, 6]}
-                pb={[1, null, 1, null, 3]}
-                pt={[3, null, 3, null, 3]}
+                pl={{ xs: 2, lg: 6 }}
+                pr={{ xs: 2, lg: 6 }}
+                pb={{ xs: 2, lg: 3 }}
+                pt={{ xs: 3 }}
               >
                 <MessageIcon
                   color="brand.offtext"
                   fill="brand.offtext"
-                  height={['30px', null, '30px', null, '40px']}
-                  width={['30px', null, '30px', null, '40px']}
+                  height={{ xs: '32px', lg: '40px' }}
+                  width={{ xs: '32px', lg: '40px' }}
                 />
               </Box>
               <Box
-                pl={[1, null, 1, null, 6]}
-                pr={[1, null, 1, null, 6]}
-                pb={[1, null, 1, null, 3]}
-                pt={[3, null, 3, null, 3]}
+                pl={{ xs: 2, lg: 6 }}
+                pr={{ xs: 2, lg: 6 }}
+                pb={{ xs: 2, lg: 3 }}
+                pt={{ xs: 3 }}
               >
                 <NewsfeedIcon
                   color="brand.offtext"
                   fill="brand.offtext"
-                  height={['30px', null, '30px', null, '40px']}
-                  width={['30px', null, '30px', null, '40px']}
+                  height={{ xs: '32px', lg: '40px' }}
+                  width={{ xs: '32px', lg: '40px' }}
                 />
               </Box>
               <Box
-                pl={[1, null, 1, null, 6]}
-                pr={[1, null, 1, null, 6]}
-                pb={[1, null, 1, null, 3]}
-                pt={[3, null, 3, null, 3]}
+                pl={{ xs: 2, lg: 6 }}
+                pr={{ xs: 2, lg: 6 }}
+                pb={{ xs: 2, lg: 3 }}
+                pt={{ xs: 3 }}
                 onClick={navigateProfile}
                 cursor="pointer"
               >
                 <ProfileIcon
                   color="brand.offtext"
                   fill="brand.offtext"
-                  height={['30px', null, '30px', null, '40px']}
-                  width={['30px', null, '30px', null, '40px']}
+                  height={{ xs: '32px', lg: '40px' }}
+                  width={{ xs: '32px', lg: '40px' }}
                 />
               </Box>
               <Box
-                pl={[1, null, 1, null, 6]}
-                pr={[1, null, 1, null, 6]}
-                pb={[1, null, 1, null, 3]}
-                pt={[3, null, 3, null, 3]}
+                pl={{ xs: 2, lg: 6 }}
+                pr={{ xs: 2, lg: 6 }}
+                pb={{ xs: 2, lg: 3 }}
+                pt={{ xs: 3 }}
               >
                 <RatingsIcon
                   color="brand.offtext"
                   fill="brand.offtext"
-                  height={['30px', null, '30px', null, '40px']}
-                  width={['30px', null, '30px', null, '40px']}
+                  height={{ xs: '32px', lg: '40px' }}
+                  width={{ xs: '32px', lg: '40px' }}
                 />
               </Box>
               <Box
-                pl={[1, null, 1, null, 6]}
-                pr={[1, null, 1, null, 6]}
-                pb={[1, null, 1, null, 3]}
-                pt={[3, null, 3, null, 3]}
+                pl={{ xs: 2, lg: 6 }}
+                pr={{ xs: 2, lg: 6 }}
+                pb={{ xs: 2, lg: 3 }}
+                pt={{ xs: 3 }}
               >
                 <DiceIcon
                   color="brand.offtext"
                   fill="brand.offtext"
-                  height={['30px', null, '30px', null, '40px']}
-                  width={['30px', null, '30px', null, '40px']}
+                  height={{ xs: '32px', lg: '40px' }}
+                  width={{ xs: '32px', lg: '40px' }}
                 />
               </Box>
             </Stack>
