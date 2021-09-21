@@ -21,12 +21,20 @@ const CircleInterface = ({ socket, children }) => {
     history.push(`/game/profile/${socket.id}`);
   };
 
+  const getWindowHeight = () => {
+    const doc = document.documentElement;
+    doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+  };
+  window.addEventListener('resize', getWindowHeight);
+  getWindowHeight();
+
   return (
     <Flex
       align="center"
       justify="center"
-      height="100vh"
+      height="var(--app-height)"
       width="100vw"
+      minHeight="-webkit-fill-available"
       background="linear-gradient(90deg,rgba(102, 126, 234, 1) 0%,rgba(105, 57, 154, 1) 100%)"
     >
       <Box
@@ -139,7 +147,7 @@ const CircleInterface = ({ socket, children }) => {
             </Stack>
           </Box>
           <Box
-            p={10}
+            p={{ xs: 5, sm: 5, md: 10 }}
             width="100%"
             height={['100%', null, '100%', null, 'auto']}
           >

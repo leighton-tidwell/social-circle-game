@@ -11,8 +11,8 @@ const Navigation = () => (
             sx={{
               background:
                 'linear-gradient(90deg,rgba(102, 126, 234, 1) 0%,rgba(105, 57, 154, 1) 100%)',
-              '-webkitBackgroundClip': 'text',
-              '-webkitTextFillColor': 'transparent',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
             }}
             fontSize="3em"
             fontWeight="700"

@@ -10,7 +10,12 @@ const SplashScreenContainer = ({ children }) => {
       width="100vw"
       background="linear-gradient(90deg,rgba(102, 126, 234, 1) 0%,rgba(105, 57, 154, 1) 100%)"
     >
-      <Box width="30%" background="brand.white" p={5} borderRadius="8px">
+      <Box
+        width={{ xs: '95%', sm: '90%', md: '70%', lg: '30%' }}
+        background="brand.white"
+        p={5}
+        borderRadius="8px"
+      >
         <Stack align="center" spacing="1.5em" p={5}>
           <Heading
             sx={{

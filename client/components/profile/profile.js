@@ -173,8 +173,9 @@ const Profile = ({ socket, lobbyId, editable, match }) => {
     <CircleInterface socket={socket}>
       {editable && (
         <Stack
-          direction={['column', null, 'column', null, 'row']}
+          direction={{ xs: 'column', sm: 'column', md: 'row' }}
           height="100%"
+          height={{ xs: '90%', sm: '90%', md: '100%' }}
           width="100%"
           spacing="2em"
         >
@@ -184,7 +185,7 @@ const Profile = ({ socket, lobbyId, editable, match }) => {
             justifyContent="center"
             backgroundColor="rgba(99,99,99,.17)"
             height="100%"
-            width={['100%', null, '100%', null, '50%']}
+            width={{ xs: '100%', sm: '100%', md: '50%' }}
             backgroundImage={profilePicture ? `url(${profilePicture})` : ''}
             backgroundPosition="center center"
             backgroundSize="cover"
@@ -207,7 +208,10 @@ const Profile = ({ socket, lobbyId, editable, match }) => {
               </Text>
             </Box>
           </Box>
-          <Stack direction="column" width={['100%', null, '100%', null, '50%']}>
+          <Stack
+            direction="column"
+            width={{ xs: '100%', sm: '100%', md: '50%' }}
+          >
             <Input
               size="lg"
               placeholder="Name"
@@ -240,8 +244,8 @@ const Profile = ({ socket, lobbyId, editable, match }) => {
             ></Textarea>
             <Button
               colorScheme="purpleButton"
-              fontSize="1.5em"
-              height="2.5em"
+              fontSize={{ xs: '2em', sm: '1.5em' }}
+              height={{ xs: '5em', md: '2.5em' }}
               fontWeight="400"
               onClick={handleSubmit}
               disabled={loading}
