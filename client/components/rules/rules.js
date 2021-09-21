@@ -19,19 +19,20 @@ const Rules = () => (
           justifyContent="center"
           position="relative"
           minHeight="350px"
-          width={['100%', null, '50%', null, '50%']}
+          minHeight={{ xs: '300px', sm: '350px' }}
+          width={{ xs: '100%', md: '100%', lg: '100%', xl: '50%' }}
         >
           <Box
             position="absolute"
-            height="350px"
-            width="350px"
+            height={{ xs: '300px', sm: '350px' }}
+            width={{ xs: '300px', sm: '350px' }}
             p={3}
             background="brand.main"
           >
             <Box
               position="absolute"
-              height="325px"
-              width="325px"
+              height={{ xs: '275px', sm: '325px' }}
+              width={{ xs: '275px', sm: '325px' }}
               background="brand.white"
               backgroundImage="url(/assets/rules.png)"
               backgroundPosition="center"
@@ -44,6 +45,10 @@ const Rules = () => (
           <Heading>Rules</Heading>
           <Text fontWeight="600">The rules of the circle are simple:</Text>
           <UnorderedList>
+            <ListItem>
+              Find a match with random people, the randomly selected host will
+              control the activites (or host your own game).
+            </ListItem>
             <ListItem>
               Players can participate in group chats where they can compete to
               win the favor of the other competitors.

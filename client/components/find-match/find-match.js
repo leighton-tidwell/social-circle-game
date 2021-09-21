@@ -1,36 +1,50 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Text, Spinner } from '@chakra-ui/react';
+import React, { useEffect, useState, useContext } from 'react';
+import { Button, Text, Spinner, useToast } from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
 import { SplashScreenContainer } from '../../components/';
+import { SocketContext } from '../../context/socket';
 
-const FindMatch = ({ socket, onStartGame, onHost, isHost }) => {
+const FindMatch = ({ onStartGame, onHost, isHost }) => {
   const [searchingPlayers, setSearchingPlayers] = useState(0);
   const [matchPlayers, setMatchPlayers] = useState(0);
   let history = useHistory();
-
-  socket.on('start-game', ({ gameid, hostid }) => {
-    onStartGame(gameid);
-    if (hostid === socket.id) {
-      onHost(true);
-      return history.push('/game/host-wait');
-    }
-    return history.push('/game/edit-profile');
-  });
-
-  socket.on(
-    'update-finding-match-count',
-    ({ playersSearching, playersRequired }) => {
-      setSearchingPlayers(playersSearching);
-      setMatchPlayers(playersRequired);
-    }
-  );
+  const toast = useToast();
+  const socket = useContext(SocketContext);
 
   const handleCancelMatch = () => {
     socket.emit('stop-find-match');
   };
 
   useEffect(() => {
+    socket.on('start-game', ({ gameid, hostid }) => {
+      onStartGame(gameid);
+      if (hostid === socket.id) {
+        onHost(true);
+        toast({
+          title: 'You have been selected as the host!',
+          position: 'top',
+          isClosable: true,
+          variant: 'left-accent',
+        });
+        return history.push('/game/home');
+      }
+      return history.push('/game/edit-profile');
+    });
+
+    socket.on(
+      'update-finding-match-count',
+      ({ playersSearching, playersRequired }) => {
+        setSearchingPlayers(playersSearching);
+        setMatchPlayers(playersRequired);
+      }
+    );
+
     socket.emit('find-match');
+
+    return () => {
+      socket.off('start-game');
+      socket.off('update-finding-match-count');
+    };
   }, []);
   return (
     <SplashScreenContainer>

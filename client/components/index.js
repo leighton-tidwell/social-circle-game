@@ -19,3 +19,4 @@ export { default as ProfileIcon } from './profile-icon/profile-icon';
 export { default as RatingsIcon } from './ratings-icon/ratings-icon';
 export { default as DiceIcon } from './dice-icon/dice-icon';
 export { default as Home } from './home/home';
+export { default as Chat } from './chat/chat';

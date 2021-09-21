@@ -6,7 +6,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const ShortUniqueId = require('short-unique-id');
 const mongoose = require('mongoose');
-const userModel = require('./models');
+const { userModel, messageModel } = require('./models');
 
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
@@ -52,6 +52,13 @@ app.post('/list-players', async (req, res) => {
   return res.json({ playerList });
 });
 
+app.post('/get-messages', async (req, res) => {
+  const gameid = req.body.gameid;
+  const listOfMessages = await messageModel.find({ gameid: gameid });
+
+  return res.json({ listOfMessages });
+});
+
 app.post('/player-information', async (req, res) => {
   const socketid = req.body.socketid;
   const playerData = await userModel.find({ socketid: socketid });
@@ -69,7 +76,6 @@ io.on('connection', (socket) => {
     console.log(`Socket id: ${socket.id} is requesting to find a match.`);
     socket.join('FIND_MATCH');
     socket.leave('IDLE_ROOM');
-    socket.join(uuid());
 
     const clientsFindingMatch = io.sockets.adapter.rooms.get('FIND_MATCH');
     io.to('FIND_MATCH').emit('update-finding-match-count', {
@@ -138,6 +144,32 @@ io.on('connection', (socket) => {
     } catch (error) {
       console.log(error);
       socket.emit('profile-saved-unsuccessfully');
+    }
+  });
+
+  socket.on('toggle-circle-chat', ({ value, gameid }) => {
+    io.to(gameid).emit('toggle-circle-chat', value);
+  });
+
+  socket.on('send-circle-chat', async (newMessage) => {
+    try {
+      const user = await userModel.findOne({ socketid: socket.id });
+
+      const saveMessage = {
+        ...newMessage,
+        avatar: user.profilePicture,
+      };
+
+      const message = new messageModel(saveMessage);
+      try {
+        await message.save();
+      } catch (error) {
+        console.log(error);
+      }
+
+      io.to(newMessage.gameid).emit('new-circle-message');
+    } catch (error) {
+      console.log(error);
     }
   });
 
@@ -214,8 +246,24 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     console.log(`${socket.id} has disconnected.`);
+    // Lets find any games they were apart of and make sure the database reflects them leaving
+    try {
+      const playerData = await userModel.findOneAndUpdate(
+        { socketid: socket.id },
+        { disconnected: true, gameid: '' }
+      );
+      const playerName = playerData.name;
+      const gameid = playerData.gameid;
+      io.to(gameid).emit('player-disconnected', {
+        playerName,
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      console.log(`${socket.id} has been removed from their game.`);
+    }
   });
 });
 

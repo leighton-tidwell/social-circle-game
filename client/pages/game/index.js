@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-import { io } from 'socket.io-client';
-const socketString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
-  process.env.NEXT_PUBLIC_CIRCLE_PORT
-    ? `:${process.env.NEXT_PUBLIC_CIRCLE_PORT}`
-    : ''
-}`;
-const socket = io(socketString);
+import { SocketContext, socket } from '../../context/socket';
 
 import {
   SplashScreen,
@@ -16,10 +10,12 @@ import {
   HostMatchLobby,
   Profile,
   Home,
+  Chat,
 } from '../../components/';
 const GamePage = () => {
   const [lobbyId, setLobbyId] = useState(null);
   const [isHost, setIsHost] = useState(false);
+  const [circleChatOpen, setCircleChatOpen] = useState(false);
 
   const handleLobbyChange = (lobby) => {
     setLobbyId(lobby);
@@ -33,7 +29,7 @@ const GamePage = () => {
 
   const render = typeof window === 'undefined' ? false : true;
   return (
-    <>
+    <SocketContext.Provider value={socket}>
       {render && (
         <Router>
           <Switch>
@@ -45,39 +41,57 @@ const GamePage = () => {
                 onStartGame={setLobbyId}
                 onHost={setIsHost}
                 isHost={isHost}
-                socket={socket}
               />
             </Route>
             <Route path="/game/join-match" exact>
-              <JoinMatch socket={socket} onLobbyChange={handleLobbyChange} />
+              <JoinMatch onLobbyChange={handleLobbyChange} />
             </Route>
             <Route path="/game/host-match" exact>
-              <HostMatch
-                socket={socket}
-                onHost={setIsHost}
-                onLobbyChange={handleLobbyChange}
-              />
+              <HostMatch onHost={setIsHost} onLobbyChange={handleLobbyChange} />
             </Route>
             <Route path="/game/host-match/lobby" exact>
-              <HostMatchLobby
-                socket={socket}
+              <HostMatchLobby isHost={isHost} lobbyId={lobbyId} />
+            </Route>
+            <Route
+              path="/game/profile/:id"
+              component={(props) => (
+                <Profile
+                  toggleChat={setCircleChatOpen}
+                  lobbyId={lobbyId}
+                  key={window.location.pathname}
+                  isHost={isHost}
+                  {...props}
+                />
+              )}
+              exact
+            />
+            <Route path="/game/edit-profile" exact>
+              <Profile
+                toggleChat={setCircleChatOpen}
+                lobbyId={lobbyId}
+                editable
+              />
+            </Route>
+            <Route path="/game/home" exact>
+              <Home
+                toggleChat={setCircleChatOpen}
+                chatOpen={circleChatOpen}
                 isHost={isHost}
                 lobbyId={lobbyId}
               />
             </Route>
-            <Route path="/game/profile/:id" exact>
-              <Profile socket={socket} lobbyId={lobbyId} />
-            </Route>
-            <Route path="/game/edit-profile" exact>
-              <Profile socket={socket} lobbyId={lobbyId} editable />
-            </Route>
-            <Route path="/game/home" exact>
-              <Home socket={socket} isHost={isHost} lobbyId={lobbyId} />
+            <Route path="/game/chat" exact>
+              <Chat
+                toggleChat={setCircleChatOpen}
+                isHost={isHost}
+                chatOpen={circleChatOpen}
+                lobbyId={lobbyId}
+              />
             </Route>
           </Switch>
         </Router>
       )}
-    </>
+    </SocketContext.Provider>
   );
 };
 

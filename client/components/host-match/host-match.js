@@ -1,18 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Box, Button, Input, Text } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
 import { SplashScreenContainer } from '../../components/';
+import { SocketContext } from '../../context/socket';
 
-const HostMatch = ({ socket, onLobbyChange, onHost }) => {
+const HostMatch = ({ onLobbyChange, onHost }) => {
   const [gameId, setGameId] = useState('');
-
-  socket.on('host-match', ({ lobby }) => {
-    setGameId(lobby);
-    onHost(true);
-  });
+  const socket = useContext(SocketContext);
 
   useEffect(() => {
     socket.emit('host-match');
+
+    socket.on('host-match', ({ lobby }) => {
+      setGameId(lobby);
+      onHost(true);
+    });
+
+    return () => {
+      socket.off('host-match');
+    };
   }, []);
 
   return (

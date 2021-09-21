@@ -1,6 +1,7 @@
-import React from 'react';
-import { Box, Flex, Stack, VStack, StackDivider } from '@chakra-ui/react';
-import { useHistory } from 'react-router-dom';
+import React, { useEffect, useContext } from 'react';
+import { Box, Flex, Stack, StackDivider, useToast } from '@chakra-ui/react';
+import { Link } from 'react-router-dom';
+import { SocketContext } from '../../context/socket';
 import {
   HomeIcon,
   MessageIcon,
@@ -10,16 +11,9 @@ import {
   DiceIcon,
 } from '../../components/';
 
-const CircleInterface = ({ socket, children }) => {
-  let history = useHistory();
-
-  const navigateHome = () => {
-    history.push('/game/home');
-  };
-
-  const navigateProfile = () => {
-    history.push(`/game/profile/${socket.id}`);
-  };
+const CircleInterface = ({ children, isHost, toggleChat }) => {
+  const toast = useToast();
+  const socket = useContext(SocketContext);
 
   const getWindowHeight = () => {
     const doc = document.documentElement;
@@ -27,6 +21,52 @@ const CircleInterface = ({ socket, children }) => {
   };
   window.addEventListener('resize', getWindowHeight);
   getWindowHeight();
+
+  useEffect(() => {
+    socket.on('player-joined-circle', ({ user }) => {
+      toast({
+        title: 'A new player has joined!',
+        position: 'top',
+        isClosable: true,
+        variant: 'left-accent',
+      });
+    });
+
+    socket
+      .off('player-disconnected')
+      .on('player-disconnected', ({ playerName }) => {
+        toast({
+          title: `${playerName} has been disconnected!`,
+          position: 'top',
+          isClosable: true,
+          variant: 'left-accent',
+        });
+      });
+
+    socket.on('toggle-circle-chat', (status) => {
+      if (status)
+        toast({
+          title: 'Circle chat is now open!',
+          position: 'top',
+          isClosable: true,
+          variant: 'left-accent',
+        });
+      else
+        toast({
+          title: 'Circle chat is now closed!',
+          position: 'top',
+          isClosable: true,
+          variant: 'left-accent',
+        });
+      toggleChat(status);
+    });
+
+    return () => {
+      socket.off('player-joined-circle');
+      socket.off('player-disconnected');
+      socket.off('toggle-circle-chat');
+    };
+  }, []);
 
   return (
     <Flex
@@ -58,34 +98,36 @@ const CircleInterface = ({ socket, children }) => {
               display={{ xs: 'flex', lg: 'block' }}
               justifyContent="center"
             >
-              <Box
-                pl={{ xs: 1, lg: 6 }}
-                pr={{ xs: 1, lg: 6 }}
-                pb={{ xs: 1, lg: 3 }}
-                pt={{ xs: 3 }}
-                onClick={navigateHome}
-                cursor="pointer"
-              >
-                <HomeIcon
-                  color="brand.offtext"
-                  fill="brand.offtext"
-                  height={{ xs: '32px', lg: '40px' }}
-                  width={{ xs: '32px', lg: '40px' }}
-                />
-              </Box>
-              <Box
-                pl={{ xs: 2, lg: 6 }}
-                pr={{ xs: 2, lg: 6 }}
-                pb={{ xs: 2, lg: 3 }}
-                pt={{ xs: 3 }}
-              >
-                <MessageIcon
-                  color="brand.offtext"
-                  fill="brand.offtext"
-                  height={{ xs: '32px', lg: '40px' }}
-                  width={{ xs: '32px', lg: '40px' }}
-                />
-              </Box>
+              <Link to="/game/home">
+                <Box
+                  pl={{ xs: 1, lg: 6 }}
+                  pr={{ xs: 1, lg: 6 }}
+                  pb={{ xs: 1, lg: 3 }}
+                  pt={{ xs: 3 }}
+                >
+                  <HomeIcon
+                    color="brand.offtext"
+                    fill="brand.offtext"
+                    height={{ xs: '32px', lg: '40px' }}
+                    width={{ xs: '32px', lg: '40px' }}
+                  />
+                </Box>
+              </Link>
+              <Link to="/game/chat">
+                <Box
+                  pl={{ xs: 2, lg: 6 }}
+                  pr={{ xs: 2, lg: 6 }}
+                  pb={{ xs: 2, lg: 3 }}
+                  pt={{ xs: 3 }}
+                >
+                  <MessageIcon
+                    color="brand.offtext"
+                    fill="brand.offtext"
+                    height={{ xs: '32px', lg: '40px' }}
+                    width={{ xs: '32px', lg: '40px' }}
+                  />
+                </Box>
+              </Link>
               <Box
                 pl={{ xs: 2, lg: 6 }}
                 pr={{ xs: 2, lg: 6 }}
@@ -99,21 +141,23 @@ const CircleInterface = ({ socket, children }) => {
                   width={{ xs: '32px', lg: '40px' }}
                 />
               </Box>
-              <Box
-                pl={{ xs: 2, lg: 6 }}
-                pr={{ xs: 2, lg: 6 }}
-                pb={{ xs: 2, lg: 3 }}
-                pt={{ xs: 3 }}
-                onClick={navigateProfile}
-                cursor="pointer"
-              >
-                <ProfileIcon
-                  color="brand.offtext"
-                  fill="brand.offtext"
-                  height={{ xs: '32px', lg: '40px' }}
-                  width={{ xs: '32px', lg: '40px' }}
-                />
-              </Box>
+              {!isHost && (
+                <Link to={`/game/profile/${socket.id}`}>
+                  <Box
+                    pl={{ xs: 2, lg: 6 }}
+                    pr={{ xs: 2, lg: 6 }}
+                    pb={{ xs: 2, lg: 3 }}
+                    pt={{ xs: 3 }}
+                  >
+                    <ProfileIcon
+                      color="brand.offtext"
+                      fill="brand.offtext"
+                      height={{ xs: '32px', lg: '40px' }}
+                      width={{ xs: '32px', lg: '40px' }}
+                    />
+                  </Box>
+                </Link>
+              )}
               <Box
                 pl={{ xs: 2, lg: 6 }}
                 pr={{ xs: 2, lg: 6 }}

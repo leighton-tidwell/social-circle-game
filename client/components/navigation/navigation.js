@@ -14,7 +14,7 @@ const Navigation = () => (
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}
-            fontSize="3em"
+            fontSize={{ xs: '1.5em', md: '2em', lg: '3em' }}
             fontWeight="700"
           >
             The Circle

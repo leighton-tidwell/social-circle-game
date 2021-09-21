@@ -1,31 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Button, Text, Spinner, List, ListItem, Box } from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
 import { SplashScreenContainer } from '../../components/';
+import { SocketContext } from '../../context/socket';
 
-const HostMatchLobby = ({ socket, lobbyId, isHost }) => {
+const HostMatchLobby = ({ lobbyId, isHost }) => {
   const [players, setPlayers] = useState([1]);
   const [totalPlayers, setTotalPlayers] = useState(0);
   const [maxPlayers, setMaxPlayers] = useState(0);
   let history = useHistory();
-
-  socket.on('player-joined', ({ totalPlayers, maxPlayers }) => {
-    console.log(totalPlayers);
-    setPlayers([...Array(totalPlayers)]);
-    setTotalPlayers(totalPlayers);
-    setMaxPlayers(maxPlayers);
-  });
+  const socket = useContext(SocketContext);
 
   const handleStartGame = () => {
     socket.emit('start-hosted-match', { gameid: lobbyId, hostid: socket.id });
   };
 
-  socket.on('start-game', ({ gameid, hostid }) => {
-    if (isHost) {
-      return history.push('/game/home');
-    }
-    return history.push('/game/edit-profile');
-  });
+  useEffect(() => {
+    socket.on('player-joined', ({ totalPlayers, maxPlayers }) => {
+      console.log(totalPlayers);
+      setPlayers([...Array(totalPlayers)]);
+      setTotalPlayers(totalPlayers);
+      setMaxPlayers(maxPlayers);
+    });
+
+    socket.on('start-game', ({ gameid, hostid }) => {
+      if (isHost) {
+        return history.push('/game/home');
+      }
+      return history.push('/game/edit-profile');
+    });
+
+    return () => {
+      socket.off('player-joined');
+      socket.off('start-game');
+    };
+  }, []);
 
   return (
     <SplashScreenContainer>

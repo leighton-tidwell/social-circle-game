@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   Box,
   Stack,
@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { useHistory, useParams } from 'react-router-dom';
 import { CircleInterface } from '../../components/';
+import { SocketContext } from '../../context/socket';
 import axios from 'axios';
 
 const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
@@ -23,7 +24,14 @@ const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
     : ''
 }`;
 
-const Profile = ({ socket, lobbyId, editable, match }) => {
+const Profile = ({
+  lobbyId,
+  editable,
+  match,
+  isHost,
+  toggleChat,
+  ...props
+}) => {
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [relationshipStatus, setRelationshipStatus] = useState('');
@@ -33,6 +41,9 @@ const Profile = ({ socket, lobbyId, editable, match }) => {
   const [loading, setLoading] = useState(false);
   let history = useHistory();
   const { id } = useParams();
+  const socket = useContext(SocketContext);
+
+  console.log(id);
 
   const openImageUpload = () => {
     document.getElementById('profile-upload').click();
@@ -149,28 +160,36 @@ const Profile = ({ socket, lobbyId, editable, match }) => {
     return true;
   };
 
-  socket.on('profile-saved-successfully', () => {
-    console.log('Got the saved profile message.');
-    return history.push(`/game/profile/${socket.id}`);
-  });
-
   useEffect(async () => {
+    socket.on('profile-saved-successfully', () => {
+      console.log('Got the saved profile message.');
+      console.log(socket.id);
+      return history.push(`/game/profile/${socket.id}`);
+    });
     if (!id) return;
+
     const {
       data: { playerData },
     } = await axios.post(`${serverString}/player-information`, {
       socketid: id,
     });
-    const fetchedPlayer = playerData[0];
-    setName(fetchedPlayer.name);
-    setAge(fetchedPlayer.age);
-    setRelationshipStatus(fetchedPlayer.relationshipStatus);
-    setBio(fetchedPlayer.bio);
-    setProfilePicture(fetchedPlayer.profilePicture);
+
+    if (playerData.length !== 0) {
+      const fetchedPlayer = playerData[0];
+      setName(fetchedPlayer.name);
+      setAge(fetchedPlayer.age);
+      setRelationshipStatus(fetchedPlayer.relationshipStatus);
+      setBio(fetchedPlayer.bio);
+      setProfilePicture(fetchedPlayer.profilePicture);
+    }
+
+    return () => {
+      socket.off('profile-saved-successfully');
+    };
   }, []);
 
   return (
-    <CircleInterface socket={socket}>
+    <CircleInterface toggleChat={toggleChat}>
       {editable && (
         <Stack
           direction={{ xs: 'column', sm: 'column', md: 'row' }}
@@ -274,19 +293,27 @@ const Profile = ({ socket, lobbyId, editable, match }) => {
         </Stack>
       )}
       {!editable && (
-        <Stack direction="row" height="100%" width="100%" spacing="2em">
+        <Stack
+          direction={{ xs: 'column', sm: 'column', md: 'row' }}
+          height="100%"
+          width="100%"
+          spacing="2em"
+        >
           <Box
             display="flex"
             alignItems="center"
             justifyContent="center"
             backgroundColor="rgba(99,99,99,.17)"
             height="100%"
-            width="50%"
+            width={{ xs: '100%', sm: '100%', md: '50%' }}
             backgroundImage={profilePicture ? `url(${profilePicture})` : ''}
             backgroundPosition="center center"
             backgroundSize="cover"
           />
-          <Stack direction="column" width="50%">
+          <Stack
+            direction="column"
+            width={{ xs: '100%', sm: '100%', md: '50%' }}
+          >
             <Text fontSize="2em" fontWeight="800">
               {name}
             </Text>
