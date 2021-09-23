@@ -2,18 +2,18 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Box, Button, Input, Text } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
 import { SplashScreenContainer } from '../../components/';
-import { SocketContext } from '../../context/socket';
+import { CircleContext } from '../../context/circle';
 
-const HostMatch = ({ onLobbyChange, onHost }) => {
+const HostMatch = () => {
   const [gameId, setGameId] = useState('');
-  const socket = useContext(SocketContext);
+  const { setLobbyId, setIsHost, socket } = useContext(CircleContext);
 
   useEffect(() => {
     socket.emit('host-match');
 
     socket.on('host-match', ({ lobby }) => {
       setGameId(lobby);
-      onHost(true);
+      setIsHost(true);
     });
 
     return () => {
@@ -42,7 +42,7 @@ const HostMatch = ({ onLobbyChange, onHost }) => {
         height="2.5em"
         fontWeight="400"
       >
-        <Link to="/game/host-match/lobby" onClick={() => onLobbyChange(gameId)}>
+        <Link to="/game/host-match/lobby" onClick={() => setLobbyId(gameId)}>
           Host Match
         </Link>
       </Button>

@@ -1,38 +1,62 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Button, Text, Spinner, List, ListItem, Box } from '@chakra-ui/react';
+import {
+  Button,
+  Text,
+  Spinner,
+  List,
+  ListItem,
+  Box,
+  useToast,
+} from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
 import { SplashScreenContainer } from '../../components/';
-import { SocketContext } from '../../context/socket';
+import { CircleContext } from '../../context/circle';
 
-const HostMatchLobby = ({ lobbyId, isHost }) => {
+const HostMatchLobby = () => {
   const [players, setPlayers] = useState([1]);
   const [totalPlayers, setTotalPlayers] = useState(0);
   const [maxPlayers, setMaxPlayers] = useState(0);
+  const { lobbyId, isHost, socket } = useContext(CircleContext);
+  const toast = useToast();
   let history = useHistory();
-  const socket = useContext(SocketContext);
 
   const handleStartGame = () => {
     socket.emit('start-hosted-match', { gameid: lobbyId, hostid: socket.id });
   };
 
+  const handleStopHost = () => {
+    if (isHost)
+      socket.emit('stop-hosted-match', { gameid: lobbyId, hostid: socket.id });
+  };
+
   useEffect(() => {
     socket.on('player-joined', ({ totalPlayers, maxPlayers }) => {
-      console.log(totalPlayers);
       setPlayers([...Array(totalPlayers)]);
       setTotalPlayers(totalPlayers);
       setMaxPlayers(maxPlayers);
     });
 
-    socket.on('start-game', ({ gameid, hostid }) => {
+    socket.on('start-game', () => {
       if (isHost) {
         return history.push('/game/home');
       }
       return history.push('/game/edit-profile');
     });
 
+    socket.on('stop-hosted-match', () => {
+      toast({
+        title: 'The host has cancelled the game.',
+        variant: 'left-accent',
+        isClosable: true,
+        position: 'top',
+      });
+      history.push('/game');
+    });
+
     return () => {
       socket.off('player-joined');
       socket.off('start-game');
+      socket.off('stop-hosted-match');
     };
   }, []);
 
@@ -79,6 +103,7 @@ const HostMatchLobby = ({ lobbyId, isHost }) => {
         fontSize="1.5em"
         height="2.5em"
         fontWeight="400"
+        onClick={handleStopHost}
       >
         <Link to="/game">Leave</Link>
       </Button>

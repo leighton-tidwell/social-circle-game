@@ -2,11 +2,11 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Button, Input, InputGroup, InputRightElement } from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
 import { SendIcon, SplashScreenContainer } from '../../components/';
-import { SocketContext } from '../../context/socket';
+import { CircleContext } from '../../context/circle';
 
-const JoinMatch = ({ onLobbyChange }) => {
+const JoinMatch = () => {
   const [matchCode, setMatchCode] = useState('');
-  const socket = useContext(SocketContext);
+  const { setLobbyId, socket } = useContext(CircleContext);
   let history = useHistory();
 
   const handleMatchCodeChange = (event) => {
@@ -19,7 +19,7 @@ const JoinMatch = ({ onLobbyChange }) => {
 
   useEffect(() => {
     socket.on('join-match', () => {
-      onLobbyChange(matchCode);
+      setLobbyId(matchCode);
       return history.push('/game/host-match/lobby');
     });
 

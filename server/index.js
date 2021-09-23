@@ -352,8 +352,10 @@ io.on('connection', (socket) => {
   });
 
   socket.on('host-match', () => {
-    console.log(`Socket id: ${socket.id} is requesting to host a match.`);
     const newLobby = uuid();
+    console.log(
+      `Socket id: ${socket.id} is requesting to host match ${newLobby}.`
+    );
 
     socket.emit('host-match', { lobby: newLobby });
 
@@ -386,6 +388,17 @@ io.on('connection', (socket) => {
       gameid: gameid,
       hostid: hostid,
     });
+  });
+
+  socket.on('stop-hosted-match', ({ gameid, hostid }) => {
+    const clientsInHostedLobby = io.sockets.adapter.rooms.get(gameid);
+
+    for (const clientId of clientsInHostedLobby) {
+      const clientSocket = io.sockets.sockets.get(clientId);
+
+      if (clientId !== hostid) clientSocket.emit('stop-hosted-match');
+      clientSocket.leave(gameid);
+    }
   });
 
   socket.on('disconnect', async () => {

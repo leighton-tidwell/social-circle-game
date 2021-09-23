@@ -2,14 +2,14 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Button, Text, Spinner, useToast } from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
 import { SplashScreenContainer } from '../../components/';
-import { SocketContext } from '../../context/socket';
+import { CircleContext } from '../../context/circle';
 
-const FindMatch = ({ onStartGame, onHost, isHost }) => {
+const FindMatch = () => {
   const [searchingPlayers, setSearchingPlayers] = useState(0);
   const [matchPlayers, setMatchPlayers] = useState(0);
   let history = useHistory();
   const toast = useToast();
-  const socket = useContext(SocketContext);
+  const { setLobbyId, setIsHost, socket } = useContext(CircleContext);
 
   const handleCancelMatch = () => {
     socket.emit('stop-find-match');
@@ -17,9 +17,9 @@ const FindMatch = ({ onStartGame, onHost, isHost }) => {
 
   useEffect(() => {
     socket.on('start-game', ({ gameid, hostid }) => {
-      onStartGame(gameid);
+      setLobbyId(gameid);
       if (hostid === socket.id) {
-        onHost(true);
+        setIsHost(true);
         toast({
           title: 'You have been selected as the host!',
           position: 'top',

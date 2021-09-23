@@ -8,9 +8,8 @@ import {
   Button,
   Link,
 } from '@chakra-ui/react';
-import { SocketContext } from '../../context/socket';
-import { CircleInterface, SendIcon } from '../../components/';
-import { useParams } from 'react-router-dom';
+import { CircleContext } from '../../context/circle';
+import { CircleInterface } from '../../components/';
 import axios from 'axios';
 
 const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
@@ -19,9 +18,9 @@ const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
     : ''
 }`;
 
-const Newsfeed = ({ toggleChat, lobbyId }) => {
+const Newsfeed = () => {
   const [newsFeedList, setNewsFeedList] = useState([]);
-  const socket = useContext(SocketContext);
+  const { socket, serverString, lobbyId } = useContext(CircleContext);
 
   const fetchNewsfeed = async () => {
     try {
@@ -41,7 +40,7 @@ const Newsfeed = ({ toggleChat, lobbyId }) => {
   }, []);
 
   return (
-    <CircleInterface toggleChat={toggleChat}>
+    <CircleInterface>
       <Stack
         color="brand.white"
         height="100%"

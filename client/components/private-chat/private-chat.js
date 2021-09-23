@@ -8,19 +8,13 @@ import {
   Button,
   Link,
 } from '@chakra-ui/react';
-import { SocketContext } from '../../context/socket';
+import { CircleContext } from '../../context/circle';
 import { CircleInterface, SendIcon } from '../../components/';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 
-const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
-  process.env.NEXT_PUBLIC_CIRCLE_PORT
-    ? `:${process.env.NEXT_PUBLIC_CIRCLE_PORT}`
-    : ''
-}`;
-
-const PrivateChat = ({ lobbyId, isHost, toggleChat, toggleRatings }) => {
-  const socket = useContext(SocketContext);
+const PrivateChat = () => {
+  const { socket, lobbyId, isHost, serverString } = useContext(CircleContext);
   const { id } = useParams();
   const messagesEndRef = useRef(null);
 
@@ -32,9 +26,7 @@ const PrivateChat = ({ lobbyId, isHost, toggleChat, toggleRatings }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const sendMessage = async (event) => {
-    console.log(chatMessage);
-
+  const sendMessage = async () => {
     const {
       data: { playerData },
     } = await axios.post(`${serverString}/player-information`, {
@@ -104,7 +96,7 @@ const PrivateChat = ({ lobbyId, isHost, toggleChat, toggleRatings }) => {
   }, []);
 
   return (
-    <CircleInterface toggleChat={toggleChat} toggleRatings={toggleRatings}>
+    <CircleInterface>
       <Stack height="100%" spacing={2}>
         <Text fontWeight="800">{participants?.join(' and ')}</Text>
         <Box

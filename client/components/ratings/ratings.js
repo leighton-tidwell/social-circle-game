@@ -13,22 +13,16 @@ import {
 import { useBreakpointValue } from '@chakra-ui/media-query';
 import { useHistory } from 'react-router-dom';
 import { CircleInterface } from '../../components/';
-import { SocketContext } from '../../context/socket';
+import { CircleContext } from '../../context/circle';
 import axios from 'axios';
 
-const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
-  process.env.NEXT_PUBLIC_CIRCLE_PORT
-    ? `:${process.env.NEXT_PUBLIC_CIRCLE_PORT}`
-    : ''
-}`;
-
-const Ratings = ({ isHost, toggleRatings, toggleChat, lobbyId }) => {
+const Ratings = () => {
   const [playerList, setPlayerList] = useState([]);
   const [playersSubmittedRatings, setPlayersSubmittedRatings] = useState([]);
   const [ratings, setRatings] = useState([]);
-  let history = useHistory();
   const toast = useToast();
-  const socket = useContext(SocketContext);
+  const { socket, isHost, lobbyId, serverString } = useContext(CircleContext);
+  let history = useHistory();
 
   const fetchPlayerList = async () => {
     try {
@@ -69,7 +63,6 @@ const Ratings = ({ isHost, toggleRatings, toggleChat, lobbyId }) => {
         player: socket.id,
         ratings,
       });
-      // Now we can emit the ratings via socket
     } catch (error) {
       toast({
         title: error.message,
@@ -98,11 +91,11 @@ const Ratings = ({ isHost, toggleRatings, toggleChat, lobbyId }) => {
   };
 
   useEffect(() => {
-    socket.on('player-joined-circle', ({ user }) => {
+    socket.on('player-joined-circle', () => {
       fetchPlayerList();
     });
 
-    socket.on('player-disconnected', ({ playerName }) => {
+    socket.on('player-disconnected', () => {
       fetchPlayerList();
     });
 
@@ -124,11 +117,7 @@ const Ratings = ({ isHost, toggleRatings, toggleChat, lobbyId }) => {
   }, [ratings]);
 
   return (
-    <CircleInterface
-      isHost={isHost}
-      toggleRatings={toggleRatings}
-      toggleChat={toggleChat}
-    >
+    <CircleInterface>
       <Stack
         direction={{ xs: 'column' }}
         height={{ xs: '100%', lg: '95%' }}

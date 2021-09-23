@@ -15,36 +15,22 @@ import {
 } from '@chakra-ui/react';
 import { useHistory, useParams } from 'react-router-dom';
 import { CircleInterface } from '../../components/';
-import { SocketContext } from '../../context/socket';
+import { CircleContext } from '../../context/circle';
 import axios from 'axios';
 
-const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
-  process.env.NEXT_PUBLIC_CIRCLE_PORT
-    ? `:${process.env.NEXT_PUBLIC_CIRCLE_PORT}`
-    : ''
-}`;
-
-const Profile = ({
-  lobbyId,
-  editable,
-  match,
-  isHost,
-  toggleChat,
-  toggleRatings,
-  ...props
-}) => {
-  const [name, setName] = useState('');
-  const [age, setAge] = useState('');
-  const [relationshipStatus, setRelationshipStatus] = useState('');
-  const [bio, setBio] = useState('');
-  const [profilePicture, setProfilePicture] = useState('');
+const Profile = ({ lobbyId, editable, match, ...props }) => {
+  const [profileData, setProfileData] = useState({
+    name: '',
+    age: '',
+    relationshipStatus: '',
+    bio: '',
+    profilePicture: '',
+  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  let history = useHistory();
   const { id } = useParams();
-  const socket = useContext(SocketContext);
-
-  console.log(id);
+  const { lobbyId, socket } = useContext(CircleContext);
+  let history = useHistory();
 
   const openImageUpload = () => {
     document.getElementById('profile-upload').click();
@@ -86,7 +72,6 @@ const Profile = ({
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     try {
-      console.log(file);
       if (file) {
         const fileData = {
           mimeType: file.type,
@@ -95,33 +80,37 @@ const Profile = ({
         };
 
         await hasMinPicDimension(fileData);
-        setProfilePicture(
-          `data:${fileData.mimeType};base64,${fileData.base64}`
-        );
+        setProfileData((prevData) => ({
+          ...prevData,
+          profilePicture: `data:${fileData.mimeType};base64,${fileData.base64}`,
+        }));
         setError('');
       }
-    } catch (error_) {
-      setError(error_.message);
+    } catch (error) {
+      setError(error.message);
     }
   };
 
   const handleNameChange = (event) => {
-    setName(event.target.value);
+    setProfileData((prevData) => ({ ...prevData, name: event.target.value }));
     setError('');
   };
 
   const handleAgeChange = (event) => {
-    setAge(event.target.value);
+    setProfileData((prevData) => ({ ...prevData, age: event.target.value }));
     setError('');
   };
 
   const handleRelationshipChange = (event) => {
-    setRelationshipStatus(event.target.value);
+    setProfileData((prevData) => ({
+      ...prevData,
+      relationshipStatus: event.target.value,
+    }));
     setError('');
   };
 
   const handleBioChange = (event) => {
-    setBio(event.target.value);
+    setProfileData((prevData) => ({ ...prevData, bio: event.target.value }));
     setError('');
   };
 
@@ -130,27 +119,18 @@ const Profile = ({
   };
 
   const handleSubmit = () => {
-    if (!name) return setError('Name is missing!');
-    if (!age) return setError('Age is missing!');
-    if (!relationshipStatus) return setError('Relationship status is missing!');
-    if (!bio) return setError('Bio is missing!');
-    if (!profilePicture) return setError('You forgot a profile picture!');
-    console.log({
-      name,
-      age,
-      relationshipStatus,
-      bio,
-      profilePicture,
-    });
+    if (!profileData.name) return setError('Name is missing!');
+    if (!profileData.age) return setError('Age is missing!');
+    if (!profileData.relationshipStatus)
+      return setError('Relationship status is missing!');
+    if (!profileData.bio) return setError('Bio is missing!');
+    if (!profileData.profilePicture)
+      return setError('You forgot a profile picture!');
 
     const user = {
       gameid: lobbyId,
       socketid: socket.id,
-      name,
-      age,
-      relationshipStatus,
-      bio,
-      profilePicture,
+      ...profileData,
     };
     socket.emit('save-profile', user);
     setLoading(true);
@@ -163,8 +143,6 @@ const Profile = ({
 
   useEffect(async () => {
     socket.on('profile-saved-successfully', () => {
-      console.log('Got the saved profile message.');
-      console.log(socket.id);
       return history.push(`/game/profile/${socket.id}`);
     });
     if (!id) return;
@@ -175,13 +153,16 @@ const Profile = ({
       socketid: id,
     });
 
+    if (!playerData) return;
     if (playerData.length !== 0) {
       const fetchedPlayer = playerData[0];
-      setName(fetchedPlayer.name);
-      setAge(fetchedPlayer.age);
-      setRelationshipStatus(fetchedPlayer.relationshipStatus);
-      setBio(fetchedPlayer.bio);
-      setProfilePicture(fetchedPlayer.profilePicture);
+      setProfileData({
+        name: fetchedPlayer.name,
+        age: fetchedPlayer.age,
+        relationshipStatus: fetchedPlayer.relationshipStatus,
+        bio: fetchedPlayer.bio,
+        profilePicture: fetchedPlayer.profilePicture,
+      });
     }
 
     return () => {
@@ -190,7 +171,7 @@ const Profile = ({
   }, []);
 
   return (
-    <CircleInterface toggleChat={toggleChat} toggleRatings={toggleRatings}>
+    <CircleInterface>
       {editable && (
         <Stack
           direction={{ xs: 'column', sm: 'column', md: 'row' }}
@@ -205,7 +186,11 @@ const Profile = ({
             backgroundColor="rgba(99,99,99,.17)"
             height="100%"
             width={{ xs: '100%', sm: '100%', md: '50%' }}
-            backgroundImage={profilePicture ? `url(${profilePicture})` : ''}
+            backgroundImage={
+              profileData.profilePicture
+                ? `url(${profileData.profilePicture})`
+                : ''
+            }
             backgroundPosition="center center"
             backgroundSize="cover"
           >
@@ -223,7 +208,7 @@ const Profile = ({
                 fontSize="1.5em"
                 cursor="pointer"
               >
-                {profilePicture ? 'Change Image' : 'Choose Image'}
+                {profileData.profilePicture ? 'Change Image' : 'Choose Image'}
               </Text>
             </Box>
           </Box>
@@ -234,21 +219,21 @@ const Profile = ({
             <Input
               size="lg"
               placeholder="Name"
-              value={name}
+              value={profileData.name}
               onChange={handleNameChange}
               isInvalid={isErrorField('name')}
             />
             <Input
               size="lg"
               placeholder="Age"
-              value={age}
+              value={profileData.age}
               onChange={handleAgeChange}
               isInvalid={isErrorField('age')}
             />
             <Input
               size="lg"
               placeholder="Relationship Status"
-              value={relationshipStatus}
+              value={profileData.relationshipStatus}
               onChange={handleRelationshipChange}
               isInvalid={isErrorField('relationship')}
             />
@@ -257,7 +242,7 @@ const Profile = ({
               size="lg"
               resize="none"
               minHeight="52%"
-              value={bio}
+              value={profileData.bio}
               onChange={handleBioChange}
               isInvalid={isErrorField('bio')}
             ></Textarea>
@@ -307,7 +292,11 @@ const Profile = ({
             backgroundColor="rgba(99,99,99,.17)"
             height="100%"
             width={{ xs: '100%', sm: '100%', md: '50%' }}
-            backgroundImage={profilePicture ? `url(${profilePicture})` : ''}
+            backgroundImage={
+              profileData.profilePicture
+                ? `url(${profileData.profilePicture})`
+                : ''
+            }
             backgroundPosition="center center"
             backgroundSize="cover"
           />
@@ -316,16 +305,16 @@ const Profile = ({
             width={{ xs: '100%', sm: '100%', md: '50%' }}
           >
             <Text fontSize="2em" fontWeight="800">
-              {name}
+              {profileData.name}
             </Text>
             <Text fontSize="1.5em">
-              <b>Age:</b> {age}
+              <b>Age:</b> {profileData.age}
             </Text>
             <Text fontSize="1.5em">
-              <b>Relationship Status:</b> {relationshipStatus}
+              <b>Relationship Status:</b> {profileData.relationshipStatus}
             </Text>
             <Text fontSize="1.5em">
-              <b>Bio:</b> {bio}
+              <b>Bio:</b> {profileData.bio}
             </Text>
           </Stack>
         </Stack>

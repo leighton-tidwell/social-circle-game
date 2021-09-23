@@ -11,26 +11,14 @@ import {
 import { useBreakpointValue } from '@chakra-ui/media-query';
 import { useHistory } from 'react-router-dom';
 import { CircleInterface } from '../../components/';
-import { SocketContext } from '../../context/socket';
+import { CircleContext } from '../../context/circle';
 import axios from 'axios';
 
-const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
-  process.env.NEXT_PUBLIC_CIRCLE_PORT
-    ? `:${process.env.NEXT_PUBLIC_CIRCLE_PORT}`
-    : ''
-}`;
-
-const Home = ({
-  lobbyId,
-  isHost,
-  chatOpen,
-  ratingsOpen,
-  toggleChat,
-  toggleRatings,
-}) => {
+const Home = () => {
   const [playerList, setPlayerList] = useState([]);
+  const { socket, isHost, lobbyId, serverString, ratingsOpen, circleChatOpen } =
+    useContext(CircleContext);
   let history = useHistory();
-  const socket = useContext(SocketContext);
 
   const goToPlayerProfile = (profile) => {
     history.push(`/game/profile/${profile}`);
@@ -43,7 +31,6 @@ const Home = ({
       } = await axios.post(`${serverString}/list-players`, {
         gameid: lobbyId,
       });
-      console.log(fetchedPlayerList);
       if (fetchedPlayerList) setPlayerList(fetchedPlayerList);
     } catch (error) {
       console.error(error);
@@ -53,7 +40,10 @@ const Home = ({
   const avatarSize = useBreakpointValue({ xs: 'lg', md: 'xl', lg: '2xl' });
 
   const toggleCircleChat = () => {
-    socket.emit('toggle-circle-chat', { value: !chatOpen, gameid: lobbyId });
+    socket.emit('toggle-circle-chat', {
+      value: !circleChatOpen,
+      gameid: lobbyId,
+    });
   };
 
   const toggleRatingsHandler = () => {
@@ -69,11 +59,11 @@ const Home = ({
   };
 
   useEffect(() => {
-    socket.on('player-joined-circle', ({ user }) => {
+    socket.on('player-joined-circle', () => {
       fetchPlayerList();
     });
 
-    socket.on('player-disconnected', ({ playerName }) => {
+    socket.on('player-disconnected', () => {
       fetchPlayerList();
     });
 
@@ -86,11 +76,7 @@ const Home = ({
   }, []);
 
   return (
-    <CircleInterface
-      isHost={isHost}
-      toggleRatings={toggleRatings}
-      toggleChat={toggleChat}
-    >
+    <CircleInterface>
       <Stack
         direction={{ xs: 'column' }}
         height={{ xs: '100%', lg: '95%' }}
@@ -160,12 +146,12 @@ const Home = ({
                 Host Panel
               </Text>
             </GridItem>
-            {chatOpen && (
+            {circleChatOpen && (
               <Button onClick={toggleCircleChat} colorScheme="blueButton">
                 Close Circle Chat
               </Button>
             )}
-            {!chatOpen && (
+            {!circleChatOpen && (
               <Button onClick={toggleCircleChat} colorScheme="purpleButton">
                 Open Circle Chat
               </Button>

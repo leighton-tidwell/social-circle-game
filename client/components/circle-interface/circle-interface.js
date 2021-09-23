@@ -1,7 +1,7 @@
 import React, { useEffect, useContext } from 'react';
 import { Box, Flex, Stack, StackDivider, useToast } from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
-import { SocketContext } from '../../context/socket';
+import { CircleContext } from '../../context/circle';
 import {
   HomeIcon,
   MessageIcon,
@@ -11,20 +11,22 @@ import {
   DiceIcon,
 } from '../../components/';
 
-const CircleInterface = ({ children, isHost, toggleChat, toggleRatings }) => {
+const CircleInterface = ({ children }) => {
   const toast = useToast();
-  const socket = useContext(SocketContext);
+  const { isHost, setCircleChatOpen, setRatingsOpen, socket } =
+    useContext(CircleContext);
   let history = useHistory();
 
   const getWindowHeight = () => {
     const doc = document.documentElement;
     doc.style.setProperty('--app-height', `${window.innerHeight}px`);
   };
+
   window.addEventListener('resize', getWindowHeight);
   getWindowHeight();
 
   useEffect(() => {
-    socket.on('player-joined-circle', ({ user }) => {
+    socket.on('player-joined-circle', () => {
       toast({
         title: 'A new player has joined!',
         position: 'top',
@@ -59,7 +61,7 @@ const CircleInterface = ({ children, isHost, toggleChat, toggleRatings }) => {
           isClosable: true,
           variant: 'left-accent',
         });
-      toggleChat(status);
+      setCircleChatOpen(status);
     });
 
     socket.on('toggle-ratings', (status) => {
@@ -80,7 +82,7 @@ const CircleInterface = ({ children, isHost, toggleChat, toggleRatings }) => {
         });
       }
 
-      toggleRatings(status);
+      setRatingsOpen(status);
     });
 
     socket.on('host-disconnect', () => {

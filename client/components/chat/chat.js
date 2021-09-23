@@ -1,29 +1,23 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import { Box, Stack, Avatar, Text, Textarea, Button } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
-import { SocketContext } from '../../context/socket';
+import { CircleContext } from '../../context/circle';
 import { CircleInterface, SendIcon } from '../../components/';
 import axios from 'axios';
 
-const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
-  process.env.NEXT_PUBLIC_CIRCLE_PORT
-    ? `:${process.env.NEXT_PUBLIC_CIRCLE_PORT}`
-    : ''
-}`;
-
-const Chat = ({ lobbyId, isHost, chatOpen, toggleChat, toggleRatings }) => {
+const Chat = () => {
   const [chatMessage, setChatMessage] = useState('');
   const [messages, setMessages] = useState([]);
-
-  const socket = useContext(SocketContext);
+  const { socket, serverString, lobbyId, isHost, circleChatOpen } =
+    useContext(CircleContext);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const sendMessage = async (event) => {
-    if (!chatOpen) return; //
+  const sendMessage = async () => {
+    if (!circleChatOpen) return;
     console.log(chatMessage);
 
     const {
@@ -85,7 +79,7 @@ const Chat = ({ lobbyId, isHost, chatOpen, toggleChat, toggleRatings }) => {
   }, []);
 
   return (
-    <CircleInterface toggleChat={toggleChat} toggleRatings={toggleRatings}>
+    <CircleInterface>
       <Stack height="100%" spacing={2}>
         <Box
           borderRadius="8px"
@@ -139,7 +133,7 @@ const Chat = ({ lobbyId, isHost, chatOpen, toggleChat, toggleRatings }) => {
                 </Box>
               </Box>
             ))}
-          {!chatOpen && (
+          {!circleChatOpen && (
             <Box display="flex" justifyContent="center">
               <Text
                 borderRadius="8px"
@@ -161,13 +155,13 @@ const Chat = ({ lobbyId, isHost, chatOpen, toggleChat, toggleRatings }) => {
               resize="none"
               value={chatMessage}
               onChange={handleChangeMessage}
-              isDisabled={!chatOpen}
+              isDisabled={!circleChatOpen}
             ></Textarea>
             <Button
               onClick={sendMessage}
               height="100%"
               colorScheme="blueButton"
-              isDisabled={!chatOpen}
+              isDisabled={!circleChatOpen}
             >
               <SendIcon boxSize="2em" />
             </Button>
