@@ -65,4 +65,98 @@ const MessageSchema = new mongoose.Schema({
 
 const Message = mongoose.model('Message', MessageSchema);
 
-module.exports = { userModel: User, messageModel: Message };
+const PrivateChatSchema = new mongoose.Schema({
+  gameid: {
+    type: String,
+    required: true,
+  },
+  chatid: {
+    type: String,
+    required: true,
+  },
+  chatname: {
+    type: String,
+  },
+  participants: {
+    type: Array,
+    required: true,
+  },
+  participantNames: {
+    type: Array,
+    required: true,
+  },
+  closed: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const PrivateChat = mongoose.model('PrivateChat', PrivateChatSchema);
+
+const PrivateMessageSchema = new mongoose.Schema({
+  chatid: {
+    type: String,
+    required: true,
+  },
+  socketid: {
+    type: String,
+    required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  avatar: {
+    type: String,
+    required: true,
+  },
+  message: {
+    type: String,
+    required: true,
+  },
+});
+
+const PrivateMessage = mongoose.model('PrivateMessage', PrivateMessageSchema);
+
+const NewsFeedSchema = new mongoose.Schema({
+  gameid: {
+    type: String,
+    required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  message: {
+    type: String,
+    required: true,
+  },
+});
+
+const NewsFeed = mongoose.model('NewsFeed', NewsFeedSchema);
+
+const RatingsSchema = new mongoose.Schema({
+  gameid: {
+    type: String,
+    required: true,
+  },
+  socketid: {
+    type: String,
+    required: true,
+  },
+  rating: {
+    type: Array,
+    required: true,
+  },
+});
+
+const Ratings = mongoose.model('Ratings', RatingsSchema);
+
+module.exports = {
+  userModel: User,
+  messageModel: Message,
+  privateChatModel: PrivateChat,
+  privateMessageModel: PrivateMessage,
+  newsFeedModel: NewsFeed,
+  ratingsModel: Ratings,
+};

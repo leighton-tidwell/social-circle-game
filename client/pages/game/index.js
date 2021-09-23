@@ -11,11 +11,15 @@ import {
   Profile,
   Home,
   Chat,
+  PrivateChat,
+  Newsfeed,
+  Ratings,
 } from '../../components/';
 const GamePage = () => {
   const [lobbyId, setLobbyId] = useState(null);
   const [isHost, setIsHost] = useState(false);
   const [circleChatOpen, setCircleChatOpen] = useState(false);
+  const [ratingsOpen, setRatingsOpen] = useState(false);
 
   const handleLobbyChange = (lobby) => {
     setLobbyId(lobby);
@@ -57,6 +61,7 @@ const GamePage = () => {
               component={(props) => (
                 <Profile
                   toggleChat={setCircleChatOpen}
+                  toggleRatings={setRatingsOpen}
                   lobbyId={lobbyId}
                   key={window.location.pathname}
                   isHost={isHost}
@@ -68,6 +73,7 @@ const GamePage = () => {
             <Route path="/game/edit-profile" exact>
               <Profile
                 toggleChat={setCircleChatOpen}
+                toggleRatings={setRatingsOpen}
                 lobbyId={lobbyId}
                 editable
               />
@@ -75,7 +81,9 @@ const GamePage = () => {
             <Route path="/game/home" exact>
               <Home
                 toggleChat={setCircleChatOpen}
+                toggleRatings={setRatingsOpen}
                 chatOpen={circleChatOpen}
+                ratingsOpen={ratingsOpen}
                 isHost={isHost}
                 lobbyId={lobbyId}
               />
@@ -83,8 +91,38 @@ const GamePage = () => {
             <Route path="/game/chat" exact>
               <Chat
                 toggleChat={setCircleChatOpen}
+                toggleRatings={setRatingsOpen}
                 isHost={isHost}
                 chatOpen={circleChatOpen}
+                lobbyId={lobbyId}
+              />
+            </Route>
+            <Route
+              path="/game/chat/:id"
+              component={(props) => (
+                <PrivateChat
+                  toggleChat={setCircleChatOpen}
+                  toggleRatings={setRatingsOpen}
+                  lobbyId={lobbyId}
+                  isHost={isHost}
+                  key={window.location.pathname}
+                  {...props}
+                />
+              )}
+              exact
+            />
+            <Route path="/game/newsfeed" exact>
+              <Newsfeed
+                toggleChat={setCircleChatOpen}
+                toggleRatings={setRatingsOpen}
+                lobbyId={lobbyId}
+              />
+            </Route>
+            <Route path="/game/ratings" exact>
+              <Ratings
+                toggleChat={setCircleChatOpen}
+                toggleRatings={setRatingsOpen}
+                isHost={isHost}
                 lobbyId={lobbyId}
               />
             </Route>

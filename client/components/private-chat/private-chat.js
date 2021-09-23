@@ -1,8 +1,16 @@
-import React, { useEffect, useState, useContext, useRef } from 'react';
-import { Box, Stack, Avatar, Text, Textarea, Button } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useContext, useState, useRef } from 'react';
+import {
+  Box,
+  Stack,
+  Avatar,
+  Text,
+  Textarea,
+  Button,
+  Link,
+} from '@chakra-ui/react';
 import { SocketContext } from '../../context/socket';
 import { CircleInterface, SendIcon } from '../../components/';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 
 const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
@@ -11,19 +19,20 @@ const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
     : ''
 }`;
 
-const Chat = ({ lobbyId, isHost, chatOpen, toggleChat, toggleRatings }) => {
+const PrivateChat = ({ lobbyId, isHost, toggleChat, toggleRatings }) => {
+  const socket = useContext(SocketContext);
+  const { id } = useParams();
+  const messagesEndRef = useRef(null);
+
   const [chatMessage, setChatMessage] = useState('');
   const [messages, setMessages] = useState([]);
-
-  const socket = useContext(SocketContext);
-  const messagesEndRef = useRef(null);
+  const [participants, setParticipants] = useState([]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const sendMessage = async (event) => {
-    if (!chatOpen) return; //
     console.log(chatMessage);
 
     const {
@@ -36,16 +45,15 @@ const Chat = ({ lobbyId, isHost, chatOpen, toggleChat, toggleRatings }) => {
     const fetchedPlayer = playerData[0];
 
     const newMessage = {
-      gameid: lobbyId,
       socketid: socket.id,
+      chatid: id,
       name: fetchedPlayer.name,
       message: chatMessage,
     };
 
     setChatMessage('');
     scrollToBottom();
-
-    socket.emit('send-circle-chat', newMessage);
+    socket.emit('send-private-chat', newMessage);
   };
 
   const handleChangeMessage = (event) => {
@@ -56,8 +64,9 @@ const Chat = ({ lobbyId, isHost, chatOpen, toggleChat, toggleRatings }) => {
     try {
       const {
         data: { listOfMessages },
-      } = await axios.post(`${serverString}/get-messages`, {
+      } = await axios.post(`${serverString}/get-private-messages`, {
         gameid: lobbyId,
+        chatid: id,
       });
       console.log(listOfMessages);
       if (listOfMessages !== 0) setMessages(listOfMessages);
@@ -66,27 +75,38 @@ const Chat = ({ lobbyId, isHost, chatOpen, toggleChat, toggleRatings }) => {
     }
   };
 
-  useEffect(() => {
-    socket.on('toggle-circle-chat', (value) => {
-      scrollToBottom();
-    });
+  const fetchParticipants = async () => {
+    try {
+      const {
+        data: { listOfParticipants },
+      } = await axios.post(`${serverString}/get-chat-participants`, {
+        gameid: lobbyId,
+        chatid: id,
+      });
+      if (listOfParticipants !== 0)
+        setParticipants(listOfParticipants[0].participantNames);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-    socket.on('new-circle-message', () => {
+  useEffect(() => {
+    fetchMessages();
+    fetchParticipants();
+    scrollToBottom();
+
+    socket.on('new-private-message', () => {
       fetchMessages();
     });
-
-    scrollToBottom();
-    fetchMessages();
-
     return () => {
-      socket.off('toggle-circle-chat');
-      socket.off('new-circle-message');
+      socket.off('new-private-message');
     };
   }, []);
 
   return (
     <CircleInterface toggleChat={toggleChat} toggleRatings={toggleRatings}>
       <Stack height="100%" spacing={2}>
+        <Text fontWeight="800">{participants?.join(' and ')}</Text>
         <Box
           borderRadius="8px"
           padding={5}
@@ -139,18 +159,6 @@ const Chat = ({ lobbyId, isHost, chatOpen, toggleChat, toggleRatings }) => {
                 </Box>
               </Box>
             ))}
-          {!chatOpen && (
-            <Box display="flex" justifyContent="center">
-              <Text
-                borderRadius="8px"
-                backgroundColor="brand.white"
-                fontWeight="800"
-                p={2}
-              >
-                Circle Chat is closed.
-              </Text>
-            </Box>
-          )}
           <div sx={{ display: 'none' }} ref={messagesEndRef} />
         </Box>
         {!isHost && (
@@ -161,13 +169,11 @@ const Chat = ({ lobbyId, isHost, chatOpen, toggleChat, toggleRatings }) => {
               resize="none"
               value={chatMessage}
               onChange={handleChangeMessage}
-              isDisabled={!chatOpen}
             ></Textarea>
             <Button
               onClick={sendMessage}
               height="100%"
               colorScheme="blueButton"
-              isDisabled={!chatOpen}
             >
               <SendIcon boxSize="2em" />
             </Button>
@@ -178,4 +184,4 @@ const Chat = ({ lobbyId, isHost, chatOpen, toggleChat, toggleRatings }) => {
   );
 };
 
-export default Chat;
+export default PrivateChat;

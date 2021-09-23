@@ -6,7 +6,14 @@ const http = require('http');
 const { Server } = require('socket.io');
 const ShortUniqueId = require('short-unique-id');
 const mongoose = require('mongoose');
-const { userModel, messageModel } = require('./models');
+const {
+  userModel,
+  messageModel,
+  privateChatModel,
+  privateMessageModel,
+  newsFeedModel,
+  ratingsModel,
+} = require('./models');
 
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
@@ -59,12 +66,54 @@ app.post('/get-messages', async (req, res) => {
   return res.json({ listOfMessages });
 });
 
+app.post('/get-private-messages', async (req, res) => {
+  const chatid = req.body.chatid;
+  const listOfMessages = await privateMessageModel.find({
+    chatid: chatid,
+  });
+
+  return res.json({ listOfMessages });
+});
+
+app.post('/get-chat-participants', async (req, res) => {
+  const gameid = req.body.gameid;
+  const chatid = req.body.chatid;
+  const chatData = await privateChatModel.find({
+    gameid: gameid,
+    chatid: chatid,
+  });
+  const listOfParticipants = chatData;
+
+  return res.json({ listOfParticipants });
+});
+
+app.post('/get-private-chat-list', async (req, res) => {
+  const gameid = req.body.gameid;
+  const listOfChats = await privateChatModel.find({ gameid: gameid });
+
+  return res.json({ listOfChats });
+});
+
+app.post('/get-newsfeed', async (req, res) => {
+  const gameid = req.body.gameid;
+  const newsFeed = await newsFeedModel.find({ gameid: gameid });
+
+  return res.json({ newsFeed });
+});
+
 app.post('/player-information', async (req, res) => {
   const socketid = req.body.socketid;
   const playerData = await userModel.find({ socketid: socketid });
   if (playerData.length === 0) return res.json({ invalid: true });
 
   return res.json({ playerData });
+});
+
+app.post('/get-ratings', async (req, res) => {
+  const gameid = req.body.gameid;
+  const listOfRatings = await ratingsModel.find({ gameid: gameid });
+
+  return res.json({ listOfRatings });
 });
 
 const MAX_PLAYERS = 3;
@@ -134,7 +183,6 @@ io.on('connection', (socket) => {
 
   socket.on('save-profile', async (user) => {
     try {
-      console.log('Trying to save profile', user.name);
       await userModel.findOneAndUpdate(
         { gameid: user.gameid, socketid: user.socketid },
         user
@@ -173,6 +221,83 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('start-private-chat', async ({ gameid, socketid, player }) => {
+    const newChatId = uuid();
+    const participants = [socketid, player];
+    const participantNames = await Promise.all(
+      participants.map(async (participant) => {
+        const user = await userModel.findOne({ socketid: participant });
+        return user.name;
+      })
+    );
+
+    const newChat = {
+      gameid,
+      chatid: newChatId,
+      participants,
+      participantNames,
+    };
+
+    const saveChat = new privateChatModel(newChat);
+    try {
+      await saveChat.save();
+    } catch (error) {
+      console.log(error);
+    }
+
+    participants.forEach((participant) => {
+      io.sockets.sockets.get(participant).join(newChatId);
+    });
+
+    io.to(newChatId).emit('new-private-chat', {
+      playerName: participantNames[1],
+      chatid: newChatId,
+    });
+
+    io.to(gameid).emit('host-new-private-chat', {
+      playerNames: participantNames,
+      chatid: newChatId,
+    });
+
+    const host = await userModel.findOne({ gameid: gameid, host: true });
+    const hostSocket = host.socketid;
+    io.sockets.sockets.get(hostSocket).join(newChatId);
+  });
+
+  socket.on('send-private-chat', async (newMessage) => {
+    try {
+      const user = await userModel.findOne({ socketid: socket.id });
+
+      const saveMessage = {
+        ...newMessage,
+        avatar: user.profilePicture,
+      };
+
+      const message = new privateMessageModel(saveMessage);
+      try {
+        await message.save();
+      } catch (error) {
+        console.log(error);
+      }
+
+      io.to(newMessage.chatid).emit('new-private-message');
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  socket.on('new-newsfeed', async (message) => {
+    const saveMessage = new newsFeedModel(message);
+
+    try {
+      await saveMessage.save();
+    } catch (error) {
+      console.log(error);
+    }
+
+    io.to(message.gameid).emit('new-newsfeed');
+  });
+
   socket.on('load-home', async (gameid) => {
     try {
       // get all users in that game
@@ -182,6 +307,23 @@ io.on('connection', (socket) => {
     } catch (error) {
       console.log(error);
     }
+  });
+
+  socket.on('toggle-ratings', ({ value, gameid }) => {
+    io.to(gameid).emit('toggle-ratings', value);
+  });
+
+  socket.on('submit-ratings', async ({ gameid, player, ratings }) => {
+    const newRating = {
+      gameid,
+      socketid: player,
+      rating: ratings,
+    };
+
+    const saveRating = new ratingsModel(newRating);
+    await saveRating.save();
+
+    io.to(gameid).emit('rating-submitted');
   });
 
   socket.on('stop-find-match', () => {
@@ -254,6 +396,7 @@ io.on('connection', (socket) => {
         { socketid: socket.id },
         { disconnected: true, gameid: '' }
       );
+      if (!playerData) return; // Player never started game
       const playerName = playerData.name || 'Host';
       const gameid = playerData.gameid;
       const isHost = playerData.host;
@@ -264,6 +407,8 @@ io.on('connection', (socket) => {
       } else {
         io.to(gameid).emit('host-disconnect');
         io.socketsLeave(gameid);
+        await userModel.updateMany({ gameid: gameid }, { gameid: '' });
+        console.log('Host leave cleanup complete.');
       }
     } catch (error) {
       console.log(error);
@@ -274,11 +419,11 @@ io.on('connection', (socket) => {
 });
 
 io.of('/').adapter.on('create-room', (room) => {
-  console.log(`room ${room} was created`);
+  //console.log(`room ${room} was created`);
 });
 
 io.of('/').adapter.on('join-room', (room, id) => {
-  console.log(`socket ${id} has joined room ${room}`);
+  //console.log(`socket ${id} has joined room ${room}`);
 });
 
 const port = process.env.PORT || 3001;

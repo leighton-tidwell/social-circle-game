@@ -30,6 +30,7 @@ const Profile = ({
   match,
   isHost,
   toggleChat,
+  toggleRatings,
   ...props
 }) => {
   const [name, setName] = useState('');
@@ -189,7 +190,7 @@ const Profile = ({
   }, []);
 
   return (
-    <CircleInterface toggleChat={toggleChat}>
+    <CircleInterface toggleChat={toggleChat} toggleRatings={toggleRatings}>
       {editable && (
         <Stack
           direction={{ xs: 'column', sm: 'column', md: 'row' }}

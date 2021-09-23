@@ -20,3 +20,6 @@ export { default as RatingsIcon } from './ratings-icon/ratings-icon';
 export { default as DiceIcon } from './dice-icon/dice-icon';
 export { default as Home } from './home/home';
 export { default as Chat } from './chat/chat';
+export { default as PrivateChat } from './private-chat/private-chat';
+export { default as Newsfeed } from './newsfeed/newsfeed';
+export { default as Ratings } from './ratings/ratings';

@@ -4,9 +4,11 @@ import {
   GridItem,
   Avatar,
   Text,
-  Button,
-  Spinner,
+  Select,
   Stack,
+  Button,
+  useToast,
+  Spinner,
 } from '@chakra-ui/react';
 import { useBreakpointValue } from '@chakra-ui/media-query';
 import { useHistory } from 'react-router-dom';
@@ -20,21 +22,13 @@ const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
     : ''
 }`;
 
-const Home = ({
-  lobbyId,
-  isHost,
-  chatOpen,
-  ratingsOpen,
-  toggleChat,
-  toggleRatings,
-}) => {
+const Ratings = ({ isHost, toggleRatings, toggleChat, lobbyId }) => {
   const [playerList, setPlayerList] = useState([]);
+  const [playersSubmittedRatings, setPlayersSubmittedRatings] = useState([]);
+  const [ratings, setRatings] = useState([]);
   let history = useHistory();
+  const toast = useToast();
   const socket = useContext(SocketContext);
-
-  const goToPlayerProfile = (profile) => {
-    history.push(`/game/profile/${profile}`);
-  };
 
   const fetchPlayerList = async () => {
     try {
@@ -52,20 +46,55 @@ const Home = ({
 
   const avatarSize = useBreakpointValue({ xs: 'lg', md: 'xl', lg: '2xl' });
 
-  const toggleCircleChat = () => {
-    socket.emit('toggle-circle-chat', { value: !chatOpen, gameid: lobbyId });
+  const updateRatings = (player, rating) => {
+    setRatings((prevRatings) => ({
+      ...prevRatings,
+      [player]: rating,
+    }));
   };
 
-  const toggleRatingsHandler = () => {
-    socket.emit('toggle-ratings', { value: !ratingsOpen, gameid: lobbyId });
+  const submitRatings = () => {
+    try {
+      let arrayOfRatings = [];
+      for (const player in ratings) {
+        arrayOfRatings.push(ratings[player]);
+      }
+      const uniqueRatings = new Set(arrayOfRatings);
+
+      if (uniqueRatings.size !== arrayOfRatings.length)
+        throw new Error('You must give each player a unique rating!');
+
+      socket.emit('submit-ratings', {
+        gameid: lobbyId,
+        player: socket.id,
+        ratings,
+      });
+      // Now we can emit the ratings via socket
+    } catch (error) {
+      toast({
+        title: error.message,
+        position: 'top',
+        isClosable: true,
+        status: 'error',
+        variant: 'left-accent',
+      });
+    }
   };
 
-  const startPrivateChat = (player) => {
-    socket.emit('start-private-chat', {
-      gameid: lobbyId,
-      socketid: socket.id,
-      player,
-    });
+  const fetchRatings = async () => {
+    try {
+      const {
+        data: { listOfRatings },
+      } = await axios.post(`${serverString}/get-ratings`, {
+        gameid: lobbyId,
+      });
+      if (!listOfRatings) return;
+
+      const playerList = listOfRatings.map((player) => player.socketid);
+      if (playerList) setPlayersSubmittedRatings(playerList);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
@@ -77,13 +106,22 @@ const Home = ({
       fetchPlayerList();
     });
 
+    socket.on('rating-submitted', () => {
+      fetchRatings();
+    });
+
     fetchPlayerList();
 
     return () => {
       socket.off('player-joined-circle');
       socket.off('player-disconnected');
+      socket.off('rating-submitted');
     };
   }, []);
+
+  useEffect(() => {
+    console.log(ratings);
+  }, [ratings]);
 
   return (
     <CircleInterface
@@ -125,69 +163,43 @@ const Home = ({
                 name={player.name}
                 src={player.profilePicture}
                 size={avatarSize}
-                onClick={() => goToPlayerProfile(player.socketid)}
                 cursor="pointer"
                 borderColor="brand.main"
                 showBorder
               />
-              {!player.name && 'Setting up profile'}
               <Text fontSize="1.5em" fontWeight="600">
-                {player.name || <Spinner />}
+                {player.name}
               </Text>
-              {!isHost && player.socketid !== socket.id && (
-                <Button
-                  onClick={() => startPrivateChat(player.socketid)}
-                  colorScheme="purpleButton"
-                  isFullWidth
+              {(isHost && !playersSubmittedRatings.includes(player.socketid)) ||
+                (!isHost && playersSubmittedRatings.includes(socket.id) && (
+                  <Spinner />
+                ))}
+              {playersSubmittedRatings.includes(player.socketid) && (
+                <Text fontWeight="800">Submitted</Text>
+              )}
+              {!isHost && !playersSubmittedRatings.includes(socket.id) && (
+                <Select
+                  onChange={(event) =>
+                    updateRatings(player.socketid, event.target.value)
+                  }
+                  placeholder="Rate"
                 >
-                  Chat
-                </Button>
+                  {playerList.map((player, i) => (
+                    <option value={i + 1}>{i + 1}</option>
+                  ))}
+                </Select>
               )}
             </GridItem>
           ))}
         </Grid>
-        {isHost && (
-          <Grid
-            gap={1}
-            templateColumns={{ xs: 'repeat(4,1fr)', lg: 'repeat(8,1fr)' }}
-          >
-            <GridItem
-              colSpan={{ xs: 4, lg: 8 }}
-              display="flex"
-              justifyContent="center"
-            >
-              <Text fontSize="1.5em" fontWeight="700" color="brand.offtext">
-                Host Panel
-              </Text>
-            </GridItem>
-            {chatOpen && (
-              <Button onClick={toggleCircleChat} colorScheme="blueButton">
-                Close Circle Chat
-              </Button>
-            )}
-            {!chatOpen && (
-              <Button onClick={toggleCircleChat} colorScheme="purpleButton">
-                Open Circle Chat
-              </Button>
-            )}
-            <Button colorScheme="purpleButton">State Your Case</Button>
-            <Button colorScheme="purpleButton">Ask Me Anything</Button>
-            <Button colorScheme="purpleButton">Ice Breaker</Button>
-            <Button colorScheme="purpleButton">Most Likely</Button>
-            <Button colorScheme="purpleButton">Hashtag This</Button>
-            <Button colorScheme="purpleButton">Trivia Night</Button>
-            <Button
-              onClick={toggleRatingsHandler}
-              colorScheme="purpleButton"
-              isDisabled={ratingsOpen}
-            >
-              Ratings
-            </Button>
-          </Grid>
+        {!isHost && (
+          <Button onClick={submitRatings} colorScheme="blueButton">
+            Submit Ratings
+          </Button>
         )}
       </Stack>
     </CircleInterface>
   );
 };
 
-export default Home;
+export default Ratings;

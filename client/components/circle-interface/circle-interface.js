@@ -11,7 +11,7 @@ import {
   DiceIcon,
 } from '../../components/';
 
-const CircleInterface = ({ children, isHost, toggleChat }) => {
+const CircleInterface = ({ children, isHost, toggleChat, toggleRatings }) => {
   const toast = useToast();
   const socket = useContext(SocketContext);
   let history = useHistory();
@@ -62,6 +62,27 @@ const CircleInterface = ({ children, isHost, toggleChat }) => {
       toggleChat(status);
     });
 
+    socket.on('toggle-ratings', (status) => {
+      if (status) {
+        toast({
+          title: 'Ratings are now open!',
+          position: 'top',
+          isClosable: true,
+          variant: 'left-accent',
+        });
+        history.push('/game/ratings');
+      } else {
+        toast({
+          title: 'Ratings are now closed!',
+          position: 'top',
+          isClosable: true,
+          variant: 'left-accent',
+        });
+      }
+
+      toggleRatings(status);
+    });
+
     socket.on('host-disconnect', () => {
       toast({
         title:
@@ -73,11 +94,34 @@ const CircleInterface = ({ children, isHost, toggleChat }) => {
       history.push('/game');
     });
 
+    socket.on('new-private-chat', ({ playerName, chatid }) => {
+      toast({
+        title: `${playerName} has opened a new private chat with you!`,
+        position: 'top',
+        isClosable: true,
+        variant: 'left-accent',
+      });
+      history.push(`/game/chat/${chatid}`);
+    });
+
+    socket.on('host-new-private-chat', ({ playerNames, chatid }) => {
+      if (!isHost) return;
+      toast({
+        title: `${playerNames.join(',')} have opened a new private chat!`,
+        position: 'top',
+        isClosable: true,
+        variant: 'left-accent',
+      });
+      history.push(`/game/chat/${chatid}`);
+    });
+
     return () => {
       socket.off('player-joined-circle');
       socket.off('player-disconnected');
       socket.off('toggle-circle-chat');
       socket.off('host-disconnect');
+      socket.off('new-private-chat');
+      socket.off('host-new-private-chat');
     };
   }, []);
 
@@ -141,19 +185,21 @@ const CircleInterface = ({ children, isHost, toggleChat }) => {
                   />
                 </Box>
               </Link>
-              <Box
-                pl={{ xs: 2, lg: 6 }}
-                pr={{ xs: 2, lg: 6 }}
-                pb={{ xs: 2, lg: 3 }}
-                pt={{ xs: 3 }}
-              >
-                <NewsfeedIcon
-                  color="brand.offtext"
-                  fill="brand.offtext"
-                  height={{ xs: '32px', lg: '40px' }}
-                  width={{ xs: '32px', lg: '40px' }}
-                />
-              </Box>
+              <Link to="/game/newsfeed">
+                <Box
+                  pl={{ xs: 2, lg: 6 }}
+                  pr={{ xs: 2, lg: 6 }}
+                  pb={{ xs: 2, lg: 3 }}
+                  pt={{ xs: 3 }}
+                >
+                  <NewsfeedIcon
+                    color="brand.offtext"
+                    fill="brand.offtext"
+                    height={{ xs: '32px', lg: '40px' }}
+                    width={{ xs: '32px', lg: '40px' }}
+                  />
+                </Box>
+              </Link>
               {!isHost && (
                 <Link to={`/game/profile/${socket.id}`}>
                   <Box
@@ -203,6 +249,7 @@ const CircleInterface = ({ children, isHost, toggleChat }) => {
             p={{ xs: 5, sm: 5, md: 10 }}
             width="100%"
             height={['100%', null, '100%', null, 'auto']}
+            overflow="auto"
           >
             {children}
           </Box>
