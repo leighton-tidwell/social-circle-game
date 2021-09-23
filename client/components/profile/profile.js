@@ -18,7 +18,7 @@ import { CircleInterface } from '../../components/';
 import { CircleContext } from '../../context/circle';
 import axios from 'axios';
 
-const Profile = ({ lobbyId, editable, match, ...props }) => {
+const Profile = ({ editable, match, ...props }) => {
   const [profileData, setProfileData] = useState({
     name: '',
     age: '',
@@ -29,7 +29,7 @@ const Profile = ({ lobbyId, editable, match, ...props }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { id } = useParams();
-  const { lobbyId, socket } = useContext(CircleContext);
+  const { lobbyId, socket, serverString } = useContext(CircleContext);
   let history = useHistory();
 
   const openImageUpload = () => {

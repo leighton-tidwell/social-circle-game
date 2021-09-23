@@ -25,4 +25,6 @@ export const CircleContext = React.createContext({
   setRatingsOpen: () => {},
   socket: socket,
   serverString: '',
+  ratingCount: 0,
+  setRatingCount: () => {},
 });

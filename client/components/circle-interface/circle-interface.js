@@ -13,7 +13,7 @@ import {
 
 const CircleInterface = ({ children }) => {
   const toast = useToast();
-  const { isHost, setCircleChatOpen, setRatingsOpen, socket } =
+  const { isHost, setCircleChatOpen, setRatingsOpen, setRatingCount, socket } =
     useContext(CircleContext);
   let history = useHistory();
 
@@ -80,6 +80,7 @@ const CircleInterface = ({ children }) => {
           isClosable: true,
           variant: 'left-accent',
         });
+        setRatingCount((prevCount) => prevCount + 1);
       }
 
       setRatingsOpen(status);
@@ -124,6 +125,7 @@ const CircleInterface = ({ children }) => {
       socket.off('host-disconnect');
       socket.off('new-private-chat');
       socket.off('host-new-private-chat');
+      socket.off('toggle-ratings');
     };
   }, []);
 
@@ -219,19 +221,21 @@ const CircleInterface = ({ children }) => {
                   </Box>
                 </Link>
               )}
-              <Box
-                pl={{ xs: 2, lg: 6 }}
-                pr={{ xs: 2, lg: 6 }}
-                pb={{ xs: 2, lg: 3 }}
-                pt={{ xs: 3 }}
-              >
-                <RatingsIcon
-                  color="brand.offtext"
-                  fill="brand.offtext"
-                  height={{ xs: '32px', lg: '40px' }}
-                  width={{ xs: '32px', lg: '40px' }}
-                />
-              </Box>
+              <Link to="/game/ratings">
+                <Box
+                  pl={{ xs: 2, lg: 6 }}
+                  pr={{ xs: 2, lg: 6 }}
+                  pb={{ xs: 2, lg: 3 }}
+                  pt={{ xs: 3 }}
+                >
+                  <RatingsIcon
+                    color="brand.offtext"
+                    fill="brand.offtext"
+                    height={{ xs: '32px', lg: '40px' }}
+                    width={{ xs: '32px', lg: '40px' }}
+                  />
+                </Box>
+              </Link>
               <Box
                 pl={{ xs: 2, lg: 6 }}
                 pr={{ xs: 2, lg: 6 }}

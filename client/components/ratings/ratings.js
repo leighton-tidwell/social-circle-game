@@ -90,6 +90,67 @@ const Ratings = () => {
     }
   };
 
+  const showSpinnerOrInput = (player) => {
+    // if the host, and player has not submitted show spinner
+    if (isHost && !playersSubmittedRatings.includes(player.socketid))
+      return <Spinner />;
+
+    // If the current player has not submitted, and is not the host show rating
+    if (!playersSubmittedRatings.includes(socket.id) && !isHost)
+      return (
+        <Select
+          onChange={(event) =>
+            updateRatings(player.socketid, event.target.value)
+          }
+          placeholder="Rate"
+        >
+          {playerList.map((player, i) => (
+            <option value={i + 1}>{i + 1}</option>
+          ))}
+        </Select>
+      );
+
+    // if the host and player has submitted, show Submitted
+    if (isHost && playersSubmittedRatings.includes(player.socketid))
+      return <Text>Submitted</Text>;
+
+    // If the current player has submitted, and the player being mapped: show Submitted
+    if (
+      playersSubmittedRatings.includes(player.socketid) &&
+      playersSubmittedRatings.includes(socket.id)
+    )
+      return <Text>Submitted</Text>;
+
+    // If the current player has submitted, and not the player being mapped: show Spinner
+    if (
+      !playersSubmittedRatings.includes(player.socketid) &&
+      playersSubmittedRatings.includes(socket.id)
+    )
+      return <Spinner />;
+  };
+
+  const finishRatings = () => {
+    socket.emit('finish-ratings', { lobbyId });
+  };
+
+  const showSubmitRatingsButton = () => {
+    if (!isHost && !playersSubmittedRatings.includes(socket.id))
+      return (
+        <Button colorScheme="blueButton" onClick={submitRatings}>
+          Submit Ratings
+        </Button>
+      );
+
+    if (isHost && playersSubmittedRatings.length === playerList.length)
+      return (
+        <Button onClick={finishRatings} colorScheme="blueButton">
+          Finish Ratings
+        </Button>
+      );
+
+    return <Text fontWeight="800">Waiting for host...</Text>;
+  };
+
   useEffect(() => {
     socket.on('player-joined-circle', () => {
       fetchPlayerList();
@@ -159,33 +220,11 @@ const Ratings = () => {
               <Text fontSize="1.5em" fontWeight="600">
                 {player.name}
               </Text>
-              {(isHost && !playersSubmittedRatings.includes(player.socketid)) ||
-                (!isHost && playersSubmittedRatings.includes(socket.id) && (
-                  <Spinner />
-                ))}
-              {playersSubmittedRatings.includes(player.socketid) && (
-                <Text fontWeight="800">Submitted</Text>
-              )}
-              {!isHost && !playersSubmittedRatings.includes(socket.id) && (
-                <Select
-                  onChange={(event) =>
-                    updateRatings(player.socketid, event.target.value)
-                  }
-                  placeholder="Rate"
-                >
-                  {playerList.map((player, i) => (
-                    <option value={i + 1}>{i + 1}</option>
-                  ))}
-                </Select>
-              )}
+              {showSpinnerOrInput(player)}
             </GridItem>
           ))}
         </Grid>
-        {!isHost && (
-          <Button onClick={submitRatings} colorScheme="blueButton">
-            Submit Ratings
-          </Button>
-        )}
+        {showSubmitRatingsButton()}
       </Stack>
     </CircleInterface>
   );

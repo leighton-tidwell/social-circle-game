@@ -326,6 +326,29 @@ io.on('connection', (socket) => {
     io.to(gameid).emit('rating-submitted');
   });
 
+  socket.on('finish-ratings', async ({ gameid }) => {
+    const getRatings = await ratingsModel.find({ gameid: gameid });
+
+    // TODO: Change rating schema to be { socketid: '', rating: '' }
+
+    // let ratees = [];
+    // getRatings.forEach((rating) => {
+    //   const userRatings = rating.ratings;
+    //   userRatings.forEach((individualRating) => Object.entries(individualRating).forEach(([socketId, score]) => {
+    //     const exists = ratees.some(e => e.hasOwnProperty(socketId));
+    //     if(exists){
+    //       const index = ratees.findIndex(r => r[socketId] !== undefined);
+    //       ratees[index][socketId] = score + ratings[index][socketId]
+    //     }
+    //     else {
+    //       ratees.push({[socketId]:score})
+    //     }
+    //   }))
+    // });
+
+    // sort in ascending order
+  });
+
   socket.on('stop-find-match', () => {
     console.log(
       `Socket id: ${socket.id} is requesting to stop finding a match.`
