@@ -150,7 +150,6 @@ const CircleInterface = ({ children }) => {
     socket.on('blocked', () => {
       setLobbyId(null);
       history.push('/game/blocked');
-      history.go(0);
     });
 
     socket.on('blocked-player', (name) => {
@@ -161,6 +160,7 @@ const CircleInterface = ({ children }) => {
         isClosable: true,
         variant: 'left-accent',
       });
+      setProfileSetupCount((prevCount) => prevCount - 1);
     });
 
     return () => {
