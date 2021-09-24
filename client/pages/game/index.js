@@ -14,20 +14,26 @@ import {
   PrivateChat,
   Newsfeed,
   Ratings,
+  Blocked,
 } from '../../components/';
 const GamePage = () => {
   const [lobbyId, setLobbyId] = useState(null);
   const [isHost, setIsHost] = useState(false);
+  const [profileSetupCount, setProfileSetupCount] = useState(0);
   const [circleChatOpen, setCircleChatOpen] = useState(false);
   const [ratingsOpen, setRatingsOpen] = useState(false);
   const [ratingCount, setRatingCount] = useState(0);
   const [ratedPlayers, setRatedPlayers] = useState([]);
+  const [showBlockPlayerModal, setShowBlockPlayerModal] = useState(false);
+  const [influencerChatId, setInfluencerChatId] = useState(null);
 
   const contextValue = {
     lobbyId,
     setLobbyId,
     isHost,
     setIsHost,
+    profileSetupCount,
+    setProfileSetupCount,
     circleChatOpen,
     setCircleChatOpen,
     ratingsOpen,
@@ -38,6 +44,10 @@ const GamePage = () => {
     setRatingCount,
     ratedPlayers,
     setRatedPlayers,
+    showBlockPlayerModal,
+    setShowBlockPlayerModal,
+    influencerChatId,
+    setInfluencerChatId,
   };
 
   const render = typeof window === 'undefined' ? false : true;
@@ -89,6 +99,9 @@ const GamePage = () => {
             </Route>
             <Route path="/game/ratings" exact>
               <Ratings />
+            </Route>
+            <Route path="/game/blocked" exact>
+              <Blocked />
             </Route>
           </Switch>
         </Router>

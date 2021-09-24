@@ -23,3 +23,5 @@ export { default as Chat } from './chat/chat';
 export { default as PrivateChat } from './private-chat/private-chat';
 export { default as Newsfeed } from './newsfeed/newsfeed';
 export { default as Ratings } from './ratings/ratings';
+export { default as BlockPlayerModal } from './block-player-modal/block-player-modal';
+export { default as Blocked } from './blocked/blocked';

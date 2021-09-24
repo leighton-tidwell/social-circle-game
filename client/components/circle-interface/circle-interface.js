@@ -16,10 +16,16 @@ const CircleInterface = ({ children }) => {
   const {
     isHost,
     setCircleChatOpen,
+    ratingsOpen,
     setRatingsOpen,
     setRatingCount,
     socket,
     setRatedPlayers,
+    setShowBlockPlayerModal,
+    setInfluencerChatId,
+    lobbyId,
+    setLobbyId,
+    setProfileSetupCount,
   } = useContext(CircleContext);
   let history = useHistory();
 
@@ -32,13 +38,19 @@ const CircleInterface = ({ children }) => {
   getWindowHeight();
 
   useEffect(() => {
+    if (!lobbyId) {
+      history.push('/game');
+      return history.go(0);
+    }
+
     socket.on('player-joined-circle', () => {
-      toast({
-        title: 'A new player has joined!',
-        position: 'top',
-        isClosable: true,
-        variant: 'left-accent',
-      });
+      setProfileSetupCount((prevCount) => prevCount + 1);
+      // toast({
+      //   title: 'A new player has joined!',
+      //   position: 'top',
+      //   isClosable: true,
+      //   variant: 'left-accent',
+      // });
     });
 
     socket
@@ -101,6 +113,7 @@ const CircleInterface = ({ children }) => {
         variant: 'left-accent',
       });
       history.push('/game');
+      history.go(0);
     });
 
     socket.on('new-private-chat', ({ playerName, chatid }) => {
@@ -126,7 +139,28 @@ const CircleInterface = ({ children }) => {
 
     socket.on('ratings-calculated', (sortedScores) => {
       setRatedPlayers(sortedScores);
-      history.push(`/game/ratings/final`);
+    });
+
+    socket.on('block-player-modal', ({ influencerChat }) => {
+      setInfluencerChatId(influencerChat);
+      setShowBlockPlayerModal(true);
+      socket.emit('toggle-ratings', { value: !ratingsOpen, gameid: lobbyId });
+    });
+
+    socket.on('blocked', () => {
+      setLobbyId(null);
+      history.push('/game/blocked');
+      history.go(0);
+    });
+
+    socket.on('blocked-player', (name) => {
+      history.push('/game/home');
+      toast({
+        title: `${name} has been blocked from the circle!`,
+        position: 'top',
+        isClosable: true,
+        variant: 'left-accent',
+      });
     });
 
     return () => {
@@ -138,6 +172,9 @@ const CircleInterface = ({ children }) => {
       socket.off('host-new-private-chat');
       socket.off('toggle-ratings');
       socket.off('finish-ratings');
+      socket.off('block-player-modal');
+      socket.off('blocked');
+      socket.off('blocked-player');
     };
   }, []);
 
@@ -233,21 +270,23 @@ const CircleInterface = ({ children }) => {
                   </Box>
                 </Link>
               )}
-              <Link to="/game/ratings">
-                <Box
-                  pl={{ xs: 2, lg: 6 }}
-                  pr={{ xs: 2, lg: 6 }}
-                  pb={{ xs: 2, lg: 3 }}
-                  pt={{ xs: 3 }}
-                >
-                  <RatingsIcon
-                    color="brand.offtext"
-                    fill="brand.offtext"
-                    height={{ xs: '32px', lg: '40px' }}
-                    width={{ xs: '32px', lg: '40px' }}
-                  />
-                </Box>
-              </Link>
+              {ratingsOpen && (
+                <Link to="/game/ratings">
+                  <Box
+                    pl={{ xs: 2, lg: 6 }}
+                    pr={{ xs: 2, lg: 6 }}
+                    pb={{ xs: 2, lg: 3 }}
+                    pt={{ xs: 3 }}
+                  >
+                    <RatingsIcon
+                      color="brand.offtext"
+                      fill="brand.offtext"
+                      height={{ xs: '32px', lg: '40px' }}
+                      width={{ xs: '32px', lg: '40px' }}
+                    />
+                  </Box>
+                </Link>
+              )}
               <Box
                 pl={{ xs: 2, lg: 6 }}
                 pr={{ xs: 2, lg: 6 }}

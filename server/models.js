@@ -152,6 +152,19 @@ const RatingsSchema = new mongoose.Schema({
 
 const Ratings = mongoose.model('Ratings', RatingsSchema);
 
+const BlockSchema = new mongoose.Schema({
+  influencerChatId: {
+    type: String,
+    required: true,
+  },
+  blocks: {
+    type: Array,
+    required: true,
+  },
+});
+
+const Blocks = mongoose.model('Blocks', BlockSchema);
+
 module.exports = {
   userModel: User,
   messageModel: Message,
@@ -159,4 +172,5 @@ module.exports = {
   privateMessageModel: PrivateMessage,
   newsFeedModel: NewsFeed,
   ratingsModel: Ratings,
+  blockModel: Blocks,
 };

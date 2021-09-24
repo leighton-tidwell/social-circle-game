@@ -16,8 +16,15 @@ import axios from 'axios';
 
 const Home = () => {
   const [playerList, setPlayerList] = useState([]);
-  const { socket, isHost, lobbyId, serverString, ratingsOpen, circleChatOpen } =
-    useContext(CircleContext);
+  const {
+    socket,
+    isHost,
+    lobbyId,
+    serverString,
+    ratingsOpen,
+    circleChatOpen,
+    profileSetupCount,
+  } = useContext(CircleContext);
   let history = useHistory();
 
   const goToPlayerProfile = (profile) => {
@@ -132,13 +139,16 @@ const Home = () => {
             </GridItem>
           ))}
         </Grid>
-        {isHost && (
+        {isHost && profileSetupCount !== playerList.length && (
+          <Text>Waiting for players to setup profiles...</Text>
+        )}
+        {isHost && profileSetupCount === playerList.length && (
           <Grid
             gap={1}
-            templateColumns={{ xs: 'repeat(4,1fr)', lg: 'repeat(8,1fr)' }}
+            templateColumns={{ xs: 'repeat(2,1fr)', lg: 'repeat(4,1fr)' }}
           >
             <GridItem
-              colSpan={{ xs: 4, lg: 8 }}
+              colSpan={{ xs: 2, lg: 4 }}
               display="flex"
               justifyContent="center"
             >
@@ -156,12 +166,7 @@ const Home = () => {
                 Open Circle Chat
               </Button>
             )}
-            <Button colorScheme="purpleButton">State Your Case</Button>
             <Button colorScheme="purpleButton">Ask Me Anything</Button>
-            <Button colorScheme="purpleButton">Ice Breaker</Button>
-            <Button colorScheme="purpleButton">Most Likely</Button>
-            <Button colorScheme="purpleButton">Hashtag This</Button>
-            <Button colorScheme="purpleButton">Trivia Night</Button>
             <Button
               onClick={toggleRatingsHandler}
               colorScheme="purpleButton"

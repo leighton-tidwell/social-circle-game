@@ -13,6 +13,7 @@ const {
   privateMessageModel,
   newsFeedModel,
   ratingsModel,
+  blockModel,
 } = require('./models');
 
 mongoose.connect(process.env.MONGODB_URI, {
@@ -53,7 +54,11 @@ app.get('/total-players', async (req, res) => {
 
 app.post('/list-players', async (req, res) => {
   const gameid = req.body.gameid;
-  const playerList = await userModel.find({ gameid: gameid, host: false });
+  const playerList = await userModel.find({
+    gameid: gameid,
+    host: false,
+    blocked: false,
+  });
   if (playerList.length === 0) return res.json({ invalid: true });
 
   return res.json({ playerList });
@@ -116,7 +121,7 @@ app.post('/get-ratings', async (req, res) => {
   return res.json({ listOfRatings });
 });
 
-const MAX_PLAYERS = 3;
+const MAX_PLAYERS = 4;
 
 io.on('connection', (socket) => {
   socket.join('IDLE_ROOM');
@@ -357,6 +362,114 @@ io.on('connection', (socket) => {
     );
 
     io.to(gameid).emit('ratings-calculated', sortedScores);
+
+    const influencerChat = uuid();
+
+    ratedScores.map((rating, i) => {
+      if (i === 0 || i === 1) {
+        const playerSocket = io.sockets.sockets.get(rating.socketid);
+        playerSocket.emit('block-player-modal', { influencerChat });
+        playerSocket.join(influencerChat);
+      }
+    });
+  });
+
+  socket.on(
+    'send-influencer-message',
+    ({ influencerChatId, name, message }) => {
+      io.to(influencerChatId).emit('influencer-chat', {
+        name,
+        message,
+      });
+    }
+  );
+
+  socket.on('select-block', async ({ player, influencerChatId }) => {
+    const findBlocks = await blockModel.findOne({
+      influencerChatId: influencerChatId,
+    });
+
+    if (findBlocks?.length === 0 || findBlocks === null) {
+      const newBlockEntry = {
+        influencerChatId,
+        blocks: [
+          {
+            player: socket.id,
+            block: player,
+          },
+        ],
+      };
+      const saveBlock = new blockModel(newBlockEntry);
+      await saveBlock.save();
+      return;
+    }
+
+    const indexOfPlayerChoice = findBlocks.blocks.findIndex(
+      (d) => d.player === socket.id
+    );
+
+    if (indexOfPlayerChoice === -1) {
+      const newBlockEntry = [
+        ...findBlocks.blocks,
+        {
+          player: socket.id,
+          block: player,
+        },
+      ];
+
+      await blockModel.updateOne(
+        { influencerChatId: influencerChatId },
+        { blocks: newBlockEntry }
+      );
+      return;
+    }
+
+    let newBlockEntry = [...findBlocks.blocks];
+    newBlockEntry[indexOfPlayerChoice] = {
+      player: socket.id,
+      block: player,
+    };
+    await blockModel.updateOne(
+      { influencerChatId: influencerChatId },
+      { blocks: newBlockEntry }
+    );
+    return;
+  });
+
+  socket.on('block-player', async (influencerChatId, lobbyId) => {
+    const findBlocks = await blockModel.findOne({
+      influencerChatId: influencerChatId,
+    });
+
+    if (findBlocks.length === 0) return; // add error handling
+
+    const blockedPlayers = findBlocks.blocks.map(
+      (blockChoice) => blockChoice.block
+    );
+
+    const uniqueBlockedPlayers = new Set(blockedPlayers);
+
+    if (blockedPlayers.length !== 2)
+      return socket.emit(
+        'block-error',
+        'The other player has not selected a player to block.'
+      );
+
+    if (uniqueBlockedPlayers.size === blockedPlayers.length)
+      return socket.emit(
+        'block-error',
+        'Both players must agree on who to block.'
+      );
+
+    io.to(influencerChatId).emit('successfully-blocked-player');
+    const blockedSocket = io.sockets.sockets.get(blockedPlayers[0]);
+    blockedSocket.emit('blocked');
+
+    const blockedPlayer = await userModel.findOneAndUpdate(
+      { socketid: blockedSocket.id },
+      { blocked: true }
+    );
+    io.to(lobbyId).emit('blocked-player', blockedPlayer.name);
   });
 
   socket.on('stop-find-match', () => {

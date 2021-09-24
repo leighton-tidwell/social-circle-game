@@ -19,6 +19,8 @@ export const CircleContext = React.createContext({
   setLobbyId: () => {},
   isHost: null,
   setIsHost: () => {},
+  profileSetupCount: 0,
+  setProfileSetupCount: () => {},
   circleChatOpen: false,
   setCircleChatOpen: () => {},
   ratingsOpen: false,
@@ -29,4 +31,8 @@ export const CircleContext = React.createContext({
   setRatingCount: () => {},
   ratedPlayers: [],
   setRatedPlayers: () => {},
+  showBlockPlayerModal: false,
+  setShowBlockPlayerModal: () => {},
+  influencerChatId: null,
+  setInfluencerChatId: () => {},
 });

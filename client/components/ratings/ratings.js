@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { useBreakpointValue } from '@chakra-ui/media-query';
 import { useHistory } from 'react-router-dom';
-import { CircleInterface } from '../../components/';
+import { CircleInterface, BlockPlayerModal } from '../../components/';
 import { CircleContext } from '../../context/circle';
 import axios from 'axios';
 
@@ -21,7 +21,8 @@ const Ratings = () => {
   const [playersSubmittedRatings, setPlayersSubmittedRatings] = useState([]);
   const [ratings, setRatings] = useState([]);
   const toast = useToast();
-  const { socket, isHost, lobbyId, serverString } = useContext(CircleContext);
+  const { socket, isHost, lobbyId, serverString, ratingsOpen } =
+    useContext(CircleContext);
   let history = useHistory();
 
   const fetchPlayerList = async () => {
@@ -158,10 +159,14 @@ const Ratings = () => {
         </Button>
       );
 
+    if (isHost) return <Text fontWeight="800">Waiting for players...</Text>;
+
     return <Text fontWeight="800">Waiting for host...</Text>;
   };
 
   useEffect(() => {
+    if (!ratingsOpen) return history.push('/game/home');
+
     socket.on('player-joined-circle', () => {
       fetchPlayerList();
     });
@@ -188,55 +193,58 @@ const Ratings = () => {
   }, [ratings]);
 
   return (
-    <CircleInterface>
-      <Stack
-        direction={{ xs: 'column' }}
-        height={{ xs: '100%', lg: '95%' }}
-        marginTop={{ xs: isHost ? '5em' : '0px', sm: '0px' }}
-      >
-        <Grid
-          templateColumns={{
-            xs: 'repeat(2, 1fr)',
-            md: 'repeat(4, 1fr)',
-          }}
-          templateRows={{
-            xs: isHost ? '20% 20% 20% 20%' : '25% 25% 25% 25%',
-            md: '1fr 1fr',
-          }}
-          gap={5}
-          height={{ xs: '80%', md: '95%' }}
-          marginBottom={{ xs: '-3em', md: '0px' }}
+    <>
+      <BlockPlayerModal />
+      <CircleInterface>
+        <Stack
+          direction={{ xs: 'column' }}
+          height={{ xs: '100%', lg: '95%' }}
+          marginTop={{ xs: isHost ? '5em' : '0px', sm: '0px' }}
         >
-          {playerList.map((player) => (
-            <GridItem
-              key={player.socketid}
-              border="1px"
-              borderColor="brand.secondary"
-              borderRadius="8px"
-              p={5}
-              display="flex"
-              flexDirection="column"
-              alignItems="center"
-              justifyContent="center"
-            >
-              <Avatar
-                name={player.name}
-                src={player.profilePicture}
-                size={avatarSize}
-                cursor="pointer"
-                borderColor="brand.main"
-                showBorder
-              />
-              <Text fontSize="1.5em" fontWeight="600">
-                {player.name}
-              </Text>
-              {showSpinnerOrInput(player)}
-            </GridItem>
-          ))}
-        </Grid>
-        {showSubmitRatingsButton()}
-      </Stack>
-    </CircleInterface>
+          <Grid
+            templateColumns={{
+              xs: 'repeat(2, 1fr)',
+              md: 'repeat(4, 1fr)',
+            }}
+            templateRows={{
+              xs: isHost ? '20% 20% 20% 20%' : '25% 25% 25% 25%',
+              md: '1fr 1fr',
+            }}
+            gap={5}
+            height={{ xs: '80%', md: '95%' }}
+            marginBottom={{ xs: '-3em', md: '0px' }}
+          >
+            {playerList.map((player) => (
+              <GridItem
+                key={player.socketid}
+                border="1px"
+                borderColor="brand.secondary"
+                borderRadius="8px"
+                p={5}
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Avatar
+                  name={player.name}
+                  src={player.profilePicture}
+                  size={avatarSize}
+                  cursor="pointer"
+                  borderColor="brand.main"
+                  showBorder
+                />
+                <Text fontSize="1.5em" fontWeight="600">
+                  {player.name}
+                </Text>
+                {showSpinnerOrInput(player)}
+              </GridItem>
+            ))}
+          </Grid>
+          {showSubmitRatingsButton()}
+        </Stack>
+      </CircleInterface>
+    </>
   );
 };
 
