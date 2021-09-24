@@ -183,10 +183,11 @@ io.on('connection', (socket) => {
 
   socket.on('save-profile', async (user) => {
     try {
-      await userModel.findOneAndUpdate(
+      const updatedUser = await userModel.findOneAndUpdate(
         { gameid: user.gameid, socketid: user.socketid },
         user
       );
+
       socket.emit('profile-saved-successfully');
       io.to(user.gameid).emit('player-joined-circle', { user });
     } catch (error) {
@@ -328,25 +329,34 @@ io.on('connection', (socket) => {
 
   socket.on('finish-ratings', async ({ gameid }) => {
     const getRatings = await ratingsModel.find({ gameid: gameid });
+    const listOfRatings = getRatings.map((user) => user.rating);
 
-    // TODO: Change rating schema to be { socketid: '', rating: '' }
+    let ratedScores = [];
+    listOfRatings.forEach((listedRating) =>
+      listedRating.forEach((rating) => {
+        const index = ratedScores.findIndex((r) => {
+          return r.socketid === rating.socketid;
+        });
 
-    // let ratees = [];
-    // getRatings.forEach((rating) => {
-    //   const userRatings = rating.ratings;
-    //   userRatings.forEach((individualRating) => Object.entries(individualRating).forEach(([socketId, score]) => {
-    //     const exists = ratees.some(e => e.hasOwnProperty(socketId));
-    //     if(exists){
-    //       const index = ratees.findIndex(r => r[socketId] !== undefined);
-    //       ratees[index][socketId] = score + ratings[index][socketId]
-    //     }
-    //     else {
-    //       ratees.push({[socketId]:score})
-    //     }
-    //   }))
-    // });
+        if (index === -1) {
+          ratedScores.push({
+            socketid: rating.socketid,
+            rating: rating.rating,
+          });
+        } else {
+          ratedScores[index] = {
+            ...ratedScores[index],
+            rating: ratedScores[index].rating + rating.rating,
+          };
+        }
+      })
+    );
 
-    // sort in ascending order
+    const sortedScores = ratedScores.sort((a, b) =>
+      a.rating > b.rating ? 1 : -1
+    );
+
+    io.to(gameid).emit('ratings-calculated', sortedScores);
   });
 
   socket.on('stop-find-match', () => {
@@ -433,7 +443,7 @@ io.on('connection', (socket) => {
         { disconnected: true, gameid: '' }
       );
       if (!playerData) return; // Player never started game
-      const playerName = playerData.name || 'Host';
+      const playerName = playerData.name || 'A player';
       const gameid = playerData.gameid;
       const isHost = playerData.host;
       if (!isHost) {

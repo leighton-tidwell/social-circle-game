@@ -21,6 +21,7 @@ const GamePage = () => {
   const [circleChatOpen, setCircleChatOpen] = useState(false);
   const [ratingsOpen, setRatingsOpen] = useState(false);
   const [ratingCount, setRatingCount] = useState(0);
+  const [ratedPlayers, setRatedPlayers] = useState([]);
 
   const contextValue = {
     lobbyId,
@@ -35,6 +36,8 @@ const GamePage = () => {
     serverString,
     ratingCount,
     setRatingCount,
+    ratedPlayers,
+    setRatedPlayers,
   };
 
   const render = typeof window === 'undefined' ? false : true;

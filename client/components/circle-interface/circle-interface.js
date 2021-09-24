@@ -13,8 +13,14 @@ import {
 
 const CircleInterface = ({ children }) => {
   const toast = useToast();
-  const { isHost, setCircleChatOpen, setRatingsOpen, setRatingCount, socket } =
-    useContext(CircleContext);
+  const {
+    isHost,
+    setCircleChatOpen,
+    setRatingsOpen,
+    setRatingCount,
+    socket,
+    setRatedPlayers,
+  } = useContext(CircleContext);
   let history = useHistory();
 
   const getWindowHeight = () => {
@@ -118,6 +124,11 @@ const CircleInterface = ({ children }) => {
       history.push(`/game/chat/${chatid}`);
     });
 
+    socket.on('ratings-calculated', (sortedScores) => {
+      setRatedPlayers(sortedScores);
+      history.push(`/game/ratings/final`);
+    });
+
     return () => {
       socket.off('player-joined-circle');
       socket.off('player-disconnected');
@@ -126,6 +137,7 @@ const CircleInterface = ({ children }) => {
       socket.off('new-private-chat');
       socket.off('host-new-private-chat');
       socket.off('toggle-ratings');
+      socket.off('finish-ratings');
     };
   }, []);
 

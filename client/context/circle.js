@@ -27,4 +27,6 @@ export const CircleContext = React.createContext({
   serverString: '',
   ratingCount: 0,
   setRatingCount: () => {},
+  ratedPlayers: [],
+  setRatedPlayers: () => {},
 });

@@ -41,22 +41,31 @@ const Ratings = () => {
   const avatarSize = useBreakpointValue({ xs: 'lg', md: 'xl', lg: '2xl' });
 
   const updateRatings = (player, rating) => {
-    setRatings((prevRatings) => ({
+    let ratingsCopy = [...ratings];
+    const index = ratings.map((rating) => rating.socketid).indexOf(player);
+    if (index !== -1) {
+      ratingsCopy[index] = { ...ratingsCopy[index], rating };
+      return setRatings(ratingsCopy);
+    }
+
+    setRatings((prevRatings) => [
       ...prevRatings,
-      [player]: rating,
-    }));
+      { socketid: player, rating: +rating },
+    ]);
   };
 
   const submitRatings = () => {
     try {
       let arrayOfRatings = [];
-      for (const player in ratings) {
-        arrayOfRatings.push(ratings[player]);
-      }
-      const uniqueRatings = new Set(arrayOfRatings);
+      ratings.forEach((rating) => {
+        if (rating.rating === '')
+          throw new Error('You must give each player a rating.');
+        arrayOfRatings.push(rating.rating);
+      });
 
+      const uniqueRatings = new Set(arrayOfRatings);
       if (uniqueRatings.size !== arrayOfRatings.length)
-        throw new Error('You must give each player a unique rating!');
+        throw new Error('You must give each player a unique rating.');
 
       socket.emit('submit-ratings', {
         gameid: lobbyId,
@@ -130,7 +139,8 @@ const Ratings = () => {
   };
 
   const finishRatings = () => {
-    socket.emit('finish-ratings', { lobbyId });
+    console.log('emitting', lobbyId);
+    socket.emit('finish-ratings', { gameid: lobbyId });
   };
 
   const showSubmitRatingsButton = () => {
