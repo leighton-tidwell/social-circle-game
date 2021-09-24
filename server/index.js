@@ -34,6 +34,7 @@ app.use(express.json());
 
 const server = http.createServer(app);
 const uuid = new ShortUniqueId({ length: 10 });
+const hostuuid = new ShortUniqueId({ length: 6, dictionary: 'alpha_upper' });
 
 const io = new Server(server, {
   cors: {
@@ -498,7 +499,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('host-match', () => {
-    const newLobby = uuid();
+    const newLobby = hostuuid();
     console.log(
       `Socket id: ${socket.id} is requesting to host match ${newLobby}.`
     );
