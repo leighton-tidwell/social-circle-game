@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button, Text } from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { SplashScreenContainer } from '../../components/';
 
 const Blocked = () => {
+  let history = useHistory();
+  useEffect(() => {
+    history.go(0);
+  }, []);
   return (
     <SplashScreenContainer>
       <Text fontSize="1.5em" fontWeight="500">
