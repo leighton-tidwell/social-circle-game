@@ -483,19 +483,32 @@ io.on('connection', (socket) => {
 
   socket.on('join-match', (room) => {
     console.log(`Socket id: ${socket.id} is requesting to join match ${room}.`);
-
-    const totalPlayers = io.sockets.adapter.rooms.get(room).size;
-    if (totalPlayers !== MAX_PLAYERS) {
-      socket.leave('IDLE_ROOM');
-      socket.join(room);
-      socket.emit('join-match');
-      io.to(room).emit('player-joined', {
-        totalPlayers: totalPlayers + 1,
-        maxPlayers: MAX_PLAYERS,
-      });
-    } else {
-      socket.emit('failed-join', { reason: 'full' });
+    try {
+      const totalPlayers = io.sockets.adapter.rooms.get(room).size;
+      if (totalPlayers !== MAX_PLAYERS) {
+        socket.leave('IDLE_ROOM');
+        socket.join(room);
+        socket.emit('join-match', room);
+        io.to(room).emit('player-joined', {
+          totalPlayers: totalPlayers + 1,
+          maxPlayers: MAX_PLAYERS,
+        });
+      } else {
+        socket.emit('failed-join', { reason: 'full' });
+      }
+    } catch (error) {
+      console.log(error);
     }
+  });
+
+  socket.on('player-left-hosted-match', ({ gameid }) => {
+    const totalPlayers = io.sockets.adapter.rooms.get(gameid).size;
+    socket.leave(gameid);
+    socket.join('IDLE_ROOM');
+    io.to(gameid).emit('player-joined', {
+      totalPlayers: totalPlayers - 1,
+      maxPlayers: MAX_PLAYERS,
+    });
   });
 
   socket.on('host-match', () => {
@@ -538,13 +551,17 @@ io.on('connection', (socket) => {
   });
 
   socket.on('stop-hosted-match', ({ gameid, hostid }) => {
-    const clientsInHostedLobby = io.sockets.adapter.rooms.get(gameid);
+    try {
+      const clientsInHostedLobby = io.sockets.adapter.rooms.get(gameid);
 
-    for (const clientId of clientsInHostedLobby) {
-      const clientSocket = io.sockets.sockets.get(clientId);
+      for (const clientId of clientsInHostedLobby) {
+        const clientSocket = io.sockets.sockets.get(clientId);
 
-      if (clientId !== hostid) clientSocket.emit('stop-hosted-match');
-      clientSocket.leave(gameid);
+        if (clientId !== hostid) clientSocket.emit('stop-hosted-match');
+        clientSocket.leave(gameid);
+      }
+    } catch (error) {
+      console.log(error);
     }
   });
 
