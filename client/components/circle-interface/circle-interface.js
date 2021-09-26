@@ -2,6 +2,7 @@ import React, { useEffect, useContext } from 'react';
 import { Box, Flex, Stack, StackDivider, useToast } from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
 import { CircleContext } from '../../context/circle';
+import axios from 'axios';
 import {
   HomeIcon,
   MessageIcon,
@@ -15,6 +16,7 @@ const CircleInterface = ({ children }) => {
   const toast = useToast();
   const {
     isHost,
+    setIsHost,
     setCircleChatOpen,
     ratingsOpen,
     setRatingsOpen,
@@ -26,6 +28,7 @@ const CircleInterface = ({ children }) => {
     lobbyId,
     setLobbyId,
     setProfileSetupCount,
+    serverString,
   } = useContext(CircleContext);
   const history = useHistory();
 
@@ -43,14 +46,26 @@ const CircleInterface = ({ children }) => {
       return history.go(0);
     }
 
+    const checkIsHost = async () => {
+      try {
+        const {
+          data: { host },
+        } = await axios.post(`${serverString}/get-host`, {
+          gameid: lobbyId,
+        });
+
+        const fetchedPlayer = host[0];
+        if (fetchedPlayer.socketid === socket.id && isHost !== true)
+          setIsHost(true);
+        else if (isHost === true) setIsHost(false);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    checkIsHost();
+
     socket.on('player-joined-circle', () => {
       setProfileSetupCount((previousCount) => previousCount + 1);
-      // Toast({
-      //   title: 'A new player has joined!',
-      //   position: 'top',
-      //   isClosable: true,
-      //   variant: 'left-accent',
-      // });
     });
 
     socket

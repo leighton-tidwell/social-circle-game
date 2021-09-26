@@ -65,6 +65,13 @@ app.post('/list-players', async (req, res) => {
   return res.json({ playerList });
 });
 
+app.post('/get-host', async (req, res) => {
+  const gameid = req.body.gameid;
+  const host = await userModel.find({ gameid: gameid, host: true });
+
+  return res.json({ host });
+});
+
 app.post('/get-messages', async (req, res) => {
   const gameid = req.body.gameid;
   const listOfMessages = await messageModel.find({ gameid: gameid });
