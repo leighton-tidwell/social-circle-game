@@ -14,9 +14,9 @@ import {
   Spinner,
 } from '@chakra-ui/react';
 import { useHistory, useParams } from 'react-router-dom';
-import { CircleInterface } from '../../components/';
-import { CircleContext } from '../../context/circle';
 import axios from 'axios';
+import { CircleInterface } from '../../components';
+import { CircleContext } from '../../context/circle';
 
 const Profile = ({ editable, match, ...props }) => {
   const [profileData, setProfileData] = useState({
@@ -30,22 +30,22 @@ const Profile = ({ editable, match, ...props }) => {
   const [loading, setLoading] = useState(false);
   const { id } = useParams();
   const { lobbyId, socket, serverString } = useContext(CircleContext);
-  let history = useHistory();
+  const history = useHistory();
 
   const openImageUpload = () => {
-    document.getElementById('profile-upload').click();
+    document.querySelector('#profile-upload').click();
   };
 
   const getBase64 = (file) =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.addEventListener('load', () => {
-        return resolve(reader.result?.slice(reader.result?.indexOf(',') + 1));
-      });
-      reader.addEventListener('error', () => {
-        return reject(new Error('File could not be parsed'));
-      });
+      reader.addEventListener('load', () =>
+        resolve(reader.result?.slice(reader.result?.indexOf(',') + 1))
+      );
+      reader.addEventListener('error', () =>
+        reject(new Error('File could not be parsed'))
+      );
     });
 
   const hasMinPicDimension = ({ mimeType, base64, file }) =>
@@ -80,8 +80,8 @@ const Profile = ({ editable, match, ...props }) => {
         };
 
         await hasMinPicDimension(fileData);
-        setProfileData((prevData) => ({
-          ...prevData,
+        setProfileData((previousData) => ({
+          ...previousData,
           profilePicture: `data:${fileData.mimeType};base64,${fileData.base64}`,
         }));
         setError('');
@@ -92,25 +92,34 @@ const Profile = ({ editable, match, ...props }) => {
   };
 
   const handleNameChange = (event) => {
-    setProfileData((prevData) => ({ ...prevData, name: event.target.value }));
+    setProfileData((previousData) => ({
+      ...previousData,
+      name: event.target.value,
+    }));
     setError('');
   };
 
   const handleAgeChange = (event) => {
-    setProfileData((prevData) => ({ ...prevData, age: event.target.value }));
+    setProfileData((previousData) => ({
+      ...previousData,
+      age: event.target.value,
+    }));
     setError('');
   };
 
   const handleRelationshipChange = (event) => {
-    setProfileData((prevData) => ({
-      ...prevData,
+    setProfileData((previousData) => ({
+      ...previousData,
       relationshipStatus: event.target.value,
     }));
     setError('');
   };
 
   const handleBioChange = (event) => {
-    setProfileData((prevData) => ({ ...prevData, bio: event.target.value }));
+    setProfileData((previousData) => ({
+      ...previousData,
+      bio: event.target.value,
+    }));
     setError('');
   };
 
@@ -137,34 +146,36 @@ const Profile = ({ editable, match, ...props }) => {
   };
 
   const isErrorField = (field) => {
-    if (error.toLowerCase().indexOf(field) === -1) return false;
+    if (!error.toLowerCase().includes(field)) return false;
     return true;
   };
 
-  useEffect(async () => {
-    socket.on('profile-saved-successfully', () => {
-      return history.push(`/game/profile/${socket.id}`);
-    });
+  useEffect(() => {
+    socket.on('profile-saved-successfully', () =>
+      history.push(`/game/profile/${socket.id}`)
+    );
     if (!id) return;
 
-    const {
-      data: { playerData },
-    } = await axios.post(`${serverString}/player-information`, {
-      socketid: id,
-    });
-
-    if (!playerData) return;
-    if (playerData.length !== 0) {
-      const fetchedPlayer = playerData[0];
-      setProfileData({
-        name: fetchedPlayer.name,
-        age: fetchedPlayer.age,
-        relationshipStatus: fetchedPlayer.relationshipStatus,
-        bio: fetchedPlayer.bio,
-        profilePicture: fetchedPlayer.profilePicture,
+    const fetchData = async () => {
+      const {
+        data: { playerData },
+      } = await axios.post(`${serverString}/player-information`, {
+        socketid: id,
       });
-    }
 
+      if (!playerData) return;
+      if (playerData.length > 0) {
+        const fetchedPlayer = playerData[0];
+        setProfileData({
+          name: fetchedPlayer.name,
+          age: fetchedPlayer.age,
+          relationshipStatus: fetchedPlayer.relationshipStatus,
+          bio: fetchedPlayer.bio,
+          profilePicture: fetchedPlayer.profilePicture,
+        });
+      }
+    };
+    fetchData();
     return () => {
       socket.off('profile-saved-successfully');
     };
@@ -245,7 +256,7 @@ const Profile = ({ editable, match, ...props }) => {
               value={profileData.bio}
               onChange={handleBioChange}
               isInvalid={isErrorField('bio')}
-            ></Textarea>
+            />
             <Button
               colorScheme="purpleButton"
               fontSize={{ xs: '2em', md: '1.5em' }}

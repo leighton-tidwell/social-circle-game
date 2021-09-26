@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Button, Text, Spinner, useToast } from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
-import { SplashScreenContainer } from '../../components/';
+import { SplashScreenContainer } from '../../components';
 import { CircleContext } from '../../context/circle';
 
 const FindMatch = () => {
   const [searchingPlayers, setSearchingPlayers] = useState(0);
   const [matchPlayers, setMatchPlayers] = useState(0);
-  let history = useHistory();
   const toast = useToast();
   const { setLobbyId, setIsHost, socket } = useContext(CircleContext);
+  const history = useHistory();
 
   const handleCancelMatch = () => {
     socket.emit('stop-find-match');
@@ -28,6 +28,7 @@ const FindMatch = () => {
         });
         return history.push('/game/home');
       }
+
       return history.push('/game/edit-profile');
     });
 
@@ -36,7 +37,7 @@ const FindMatch = () => {
       ({ playersSearching, playersRequired }) => {
         setSearchingPlayers(playersSearching);
         setMatchPlayers(playersRequired);
-      }
+      },
     );
 
     socket.emit('find-match');
@@ -52,17 +53,17 @@ const FindMatch = () => {
         Finding a match ({searchingPlayers}/{matchPlayers})
       </Text>
       <Spinner />
-      <Button
-        colorScheme="purpleButton"
-        isFullWidth
-        fontSize="1.5em"
-        height="2.5em"
-        fontWeight="400"
-      >
-        <Link to="/game" onClick={handleCancelMatch}>
+      <Link style={{ width: '100%' }} to="/game" onClick={handleCancelMatch}>
+        <Button
+          colorScheme="purpleButton"
+          isFullWidth
+          fontSize="1.5em"
+          height="2.5em"
+          fontWeight="400"
+        >
           Cancel
-        </Link>
-      </Button>
+        </Button>
+      </Link>
     </SplashScreenContainer>
   );
 };

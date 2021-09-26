@@ -61,19 +61,17 @@ const Stats = () => {
                   duration={1}
                   end={totalTrackedGames}
                 >
-                  {({ countUpRef }) => {
-                    return (
-                      <VisibilitySensor
-                        active={!viewPortEntered}
-                        onChange={(isVisible) => {
-                          if (isVisible) setViewPortEntered(true);
-                        }}
-                        delayedCall
-                      >
-                        <h4 ref={countUpRef} />
-                      </VisibilitySensor>
-                    );
-                  }}
+                  {({ countUpRef }) => (
+                    <VisibilitySensor
+                      active={!viewPortEntered}
+                      onChange={(isVisible) => {
+                        if (isVisible) setViewPortEntered(true);
+                      }}
+                      delayedCall
+                    >
+                      <h4 ref={countUpRef} />
+                    </VisibilitySensor>
+                  )}
                 </CountUp>
               </Text>
             </Flex>
@@ -93,19 +91,17 @@ const Stats = () => {
                   duration={1}
                   end={totalTrackedPlayers}
                 >
-                  {({ countUpRef }) => {
-                    return (
-                      <VisibilitySensor
-                        active={!viewPortEntered}
-                        onChange={(isVisible) => {
-                          if (isVisible) setViewPortEntered(true);
-                        }}
-                        delayedCall
-                      >
-                        <h4 ref={countUpRef} />
-                      </VisibilitySensor>
-                    );
-                  }}
+                  {({ countUpRef }) => (
+                    <VisibilitySensor
+                      active={!viewPortEntered}
+                      onChange={(isVisible) => {
+                        if (isVisible) setViewPortEntered(true);
+                      }}
+                      delayedCall
+                    >
+                      <h4 ref={countUpRef} />
+                    </VisibilitySensor>
+                  )}
                 </CountUp>
               </Text>
             </Flex>

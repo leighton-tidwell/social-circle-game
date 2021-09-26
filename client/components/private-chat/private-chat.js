@@ -8,10 +8,10 @@ import {
   Button,
   Link,
 } from '@chakra-ui/react';
-import { CircleContext } from '../../context/circle';
-import { CircleInterface, SendIcon } from '../../components/';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import { CircleContext } from '../../context/circle';
+import { CircleInterface, SendIcon } from '../../components';
 
 const PrivateChat = () => {
   const { socket, lobbyId, isHost, serverString } = useContext(CircleContext);
@@ -112,7 +112,7 @@ const PrivateChat = () => {
           }}
           mt={{ xs: '5em', md: '0px' }}
         >
-          {messages.length !== 0 &&
+          {messages.length > 0 &&
             messages.map((message, i, array) => (
               <Box
                 key={i}
@@ -161,7 +161,7 @@ const PrivateChat = () => {
               resize="none"
               value={chatMessage}
               onChange={handleChangeMessage}
-            ></Textarea>
+            />
             <Button
               onClick={sendMessage}
               height="100%"

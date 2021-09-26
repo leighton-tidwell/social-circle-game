@@ -1,22 +1,8 @@
 import React, { useEffect, useState, useContext } from 'react';
-import {
-  Box,
-  Stack,
-  Avatar,
-  Text,
-  Textarea,
-  Button,
-  Link,
-} from '@chakra-ui/react';
-import { CircleContext } from '../../context/circle';
-import { CircleInterface } from '../../components/';
+import { Box, Stack, Text } from '@chakra-ui/react';
 import axios from 'axios';
-
-const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
-  process.env.NEXT_PUBLIC_CIRCLE_PORT
-    ? `:${process.env.NEXT_PUBLIC_CIRCLE_PORT}`
-    : ''
-}`;
+import { CircleContext } from '../../context/circle';
+import { CircleInterface } from '../../components';
 
 const Newsfeed = () => {
   const [newsFeedList, setNewsFeedList] = useState([]);

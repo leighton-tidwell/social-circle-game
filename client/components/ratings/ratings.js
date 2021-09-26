@@ -12,9 +12,9 @@ import {
 } from '@chakra-ui/react';
 import { useBreakpointValue } from '@chakra-ui/media-query';
 import { useHistory } from 'react-router-dom';
-import { CircleInterface, BlockPlayerModal } from '../../components/';
-import { CircleContext } from '../../context/circle';
 import axios from 'axios';
+import { CircleInterface, BlockPlayerModal } from '../../components';
+import { CircleContext } from '../../context/circle';
 
 const Ratings = () => {
   const [playerList, setPlayerList] = useState([]);
@@ -23,7 +23,7 @@ const Ratings = () => {
   const toast = useToast();
   const { socket, isHost, lobbyId, serverString, ratingsOpen } =
     useContext(CircleContext);
-  let history = useHistory();
+  const history = useHistory();
 
   const fetchPlayerList = async () => {
     try {
@@ -42,27 +42,27 @@ const Ratings = () => {
   const avatarSize = useBreakpointValue({ xs: 'lg', md: 'xl', lg: '2xl' });
 
   const updateRatings = (player, rating) => {
-    let ratingsCopy = [...ratings];
+    const ratingsCopy = [...ratings];
     const index = ratings.map((rating) => rating.socketid).indexOf(player);
     if (index !== -1) {
       ratingsCopy[index] = { ...ratingsCopy[index], rating };
       return setRatings(ratingsCopy);
     }
 
-    setRatings((prevRatings) => [
-      ...prevRatings,
-      { socketid: player, rating: +rating },
+    setRatings((previousRatings) => [
+      ...previousRatings,
+      { socketid: player, rating: Number(rating) },
     ]);
   };
 
   const submitRatings = () => {
     try {
-      let arrayOfRatings = [];
-      ratings.forEach((rating) => {
+      const arrayOfRatings = [];
+      for (const rating of ratings) {
         if (rating.rating === '')
           throw new Error('You must give each player a rating.');
         arrayOfRatings.push(rating.rating);
-      });
+      }
 
       const uniqueRatings = new Set(arrayOfRatings);
       if (uniqueRatings.size !== arrayOfRatings.length)
@@ -101,7 +101,7 @@ const Ratings = () => {
   };
 
   const showSpinnerOrInput = (player) => {
-    // if the host, and player has not submitted show spinner
+    // If the host, and player has not submitted show spinner
     if (isHost && !playersSubmittedRatings.includes(player.socketid))
       return <Spinner />;
 
@@ -115,12 +115,14 @@ const Ratings = () => {
           placeholder="Rate"
         >
           {playerList.map((player, i) => (
-            <option value={i + 1}>{i + 1}</option>
+            <option key={player.socketid} value={i + 1}>
+              {i + 1}
+            </option>
           ))}
         </Select>
       );
 
-    // if the host and player has submitted, show Submitted
+    // If the host and player has submitted, show Submitted
     if (isHost && playersSubmittedRatings.includes(player.socketid))
       return <Text>Submitted</Text>;
 

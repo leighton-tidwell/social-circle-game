@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Box, Button, Input, Text } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
-import { SplashScreenContainer } from '../../components/';
+import { SplashScreenContainer } from '../../components';
 import { CircleContext } from '../../context/circle';
 
 const HostMatch = () => {
@@ -34,27 +34,32 @@ const HostMatch = () => {
         </Text>
         <Input size="lg" value={gameId} borderColor="brand.main" isReadOnly />
       </Box>
-
-      <Button
-        colorScheme="blueButton"
-        isFullWidth
-        fontSize="1.5em"
-        height="2.5em"
-        fontWeight="400"
+      <Link
+        style={{ width: '100%' }}
+        to="/game/host-match/lobby"
+        onClick={() => setLobbyId(gameId)}
       >
-        <Link to="/game/host-match/lobby" onClick={() => setLobbyId(gameId)}>
+        <Button
+          colorScheme="blueButton"
+          isFullWidth
+          fontSize="1.5em"
+          height="2.5em"
+          fontWeight="400"
+        >
           Host Match
-        </Link>
-      </Button>
-      <Button
-        colorScheme="purpleButton"
-        isFullWidth
-        fontSize="1.5em"
-        height="2.5em"
-        fontWeight="400"
-      >
-        <Link to="/game">Cancel</Link>
-      </Button>
+        </Button>
+      </Link>
+      <Link style={{ width: '100%' }} to="/game">
+        <Button
+          colorScheme="purpleButton"
+          isFullWidth
+          fontSize="1.5em"
+          height="2.5em"
+          fontWeight="400"
+        >
+          Cancel
+        </Button>
+      </Link>
     </SplashScreenContainer>
   );
 };

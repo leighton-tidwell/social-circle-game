@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { Button, Text } from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
-import { SplashScreenContainer } from '../../components/';
+import { SplashScreenContainer } from '../../components';
 
 const Blocked = () => {
-  let history = useHistory();
+  const history = useHistory();
   useEffect(() => {
     history.go(0);
   }, []);

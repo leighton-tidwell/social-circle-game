@@ -15,7 +15,8 @@ import {
   Newsfeed,
   Ratings,
   Blocked,
-} from '../../components/';
+} from '../../components';
+
 const GamePage = () => {
   const [lobbyId, setLobbyId] = useState(null);
   const [isHost, setIsHost] = useState(false);
@@ -50,7 +51,7 @@ const GamePage = () => {
     setInfluencerChatId,
   };
 
-  const render = typeof window === 'undefined' ? false : true;
+  const render = typeof window !== 'undefined';
   return (
     <CircleContext.Provider value={contextValue}>
       {render && (

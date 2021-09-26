@@ -1,6 +1,4 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { CircleContext, socket } from '../../context/circle';
-import { SendIcon } from '../../components/';
 import axios from 'axios';
 import {
   Modal,
@@ -23,6 +21,8 @@ import {
   AlertDescription,
   CloseButton,
 } from '@chakra-ui/react';
+import { CircleContext, socket } from '../../context/circle';
+import { SendIcon } from '../../components';
 
 const BlockPlayerModal = () => {
   const [messages, setMessages] = useState([]);
@@ -102,7 +102,10 @@ const BlockPlayerModal = () => {
 
     socket.on('influencer-chat', ({ name, message }) => {
       console.log(name, message);
-      setMessages((prevMessages) => [...prevMessages, { name, message }]);
+      setMessages((previousMessages) => [
+        ...previousMessages,
+        { name, message },
+      ]);
     });
 
     socket.on('block-error', (message) => {
@@ -166,7 +169,7 @@ const BlockPlayerModal = () => {
               mr={2}
               value={enteredMessage}
               onChange={handleChangeEnteredMessage}
-            ></Textarea>
+            />
             <Button height="5em" colorScheme="blueButton" onClick={sendMessage}>
               <SendIcon boxSize="2em" />
             </Button>

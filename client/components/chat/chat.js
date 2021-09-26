@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import { Box, Stack, Avatar, Text, Textarea, Button } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
-import { CircleContext } from '../../context/circle';
-import { CircleInterface, SendIcon } from '../../components/';
 import axios from 'axios';
+import { CircleContext } from '../../context/circle';
+import { CircleInterface, SendIcon } from '../../components';
 
 const Chat = () => {
   const [chatMessage, setChatMessage] = useState('');
@@ -61,7 +61,7 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    socket.on('toggle-circle-chat', (value) => {
+    socket.on('toggle-circle-chat', () => {
       scrollToBottom();
     });
 
@@ -94,7 +94,7 @@ const Chat = () => {
           }}
           mt={{ xs: '5em', md: '0px' }}
         >
-          {messages.length !== 0 &&
+          {messages.length > 0 &&
             messages.map((message, i, array) => (
               <Box
                 key={i}
@@ -156,7 +156,7 @@ const Chat = () => {
               value={chatMessage}
               onChange={handleChangeMessage}
               isDisabled={!circleChatOpen}
-            ></Textarea>
+            />
             <Button
               onClick={sendMessage}
               height="100%"

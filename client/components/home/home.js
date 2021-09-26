@@ -10,9 +10,9 @@ import {
 } from '@chakra-ui/react';
 import { useBreakpointValue } from '@chakra-ui/media-query';
 import { useHistory } from 'react-router-dom';
-import { CircleInterface } from '../../components/';
-import { CircleContext } from '../../context/circle';
 import axios from 'axios';
+import { CircleInterface } from '../../components';
+import { CircleContext } from '../../context/circle';
 
 const Home = () => {
   const [playerList, setPlayerList] = useState([]);
@@ -25,7 +25,7 @@ const Home = () => {
     circleChatOpen,
     profileSetupCount,
   } = useContext(CircleContext);
-  let history = useHistory();
+  const history = useHistory();
 
   const goToPlayerProfile = (profile) => {
     history.push(`/game/profile/${profile}`);

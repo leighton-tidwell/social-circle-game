@@ -1,30 +1,30 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Button, Input, InputGroup, InputRightElement } from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
-import { SendIcon, SplashScreenContainer } from '../../components/';
+import { SendIcon, SplashScreenContainer } from '../../components';
 import { CircleContext } from '../../context/circle';
 
 const JoinMatch = () => {
   const [matchCode, setMatchCode] = useState('');
   const { setLobbyId, socket } = useContext(CircleContext);
-  let history = useHistory();
+  const history = useHistory();
 
   const handleMatchCodeChange = (event) => {
     setMatchCode(event.target.value);
   };
 
   const handleJoinMatch = () => {
-    socket.emit('join-match', matchCode);
+    if (matchCode) socket.emit('join-match', matchCode);
   };
 
   useEffect(() => {
-    socket.on('join-match', () => {
-      setLobbyId(matchCode);
-      return history.push('/game/host-match/lobby');
+    socket.on('join-match', (gameid) => {
+      setLobbyId(gameid);
+      history.push('/game/host-match/lobby');
     });
 
     socket.on('failed-join', ({ reason }) => {
-      if (reason === 'full') return alert('This lobby is full.');
+      if (reason === 'full') alert('This lobby is full.');
     });
 
     return () => {
@@ -41,6 +41,7 @@ const JoinMatch = () => {
           placeholder="Enter match code"
           borderColor="brand.main"
           onChange={handleMatchCodeChange}
+          value={matchCode}
         />
         <InputRightElement>
           <Button
@@ -56,16 +57,17 @@ const JoinMatch = () => {
           </Button>
         </InputRightElement>
       </InputGroup>
-
-      <Button
-        colorScheme="purpleButton"
-        isFullWidth
-        fontSize="1.5em"
-        height="2.5em"
-        fontWeight="400"
-      >
-        <Link to="/game">Cancel</Link>
-      </Button>
+      <Link style={{ width: '100%' }} to="/game">
+        <Button
+          colorScheme="purpleButton"
+          isFullWidth
+          fontSize="1.5em"
+          height="2.5em"
+          fontWeight="400"
+        >
+          Cancel
+        </Button>
+      </Link>
     </SplashScreenContainer>
   );
 };

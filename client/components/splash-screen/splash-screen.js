@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@chakra-ui/react';
-import { SplashScreenContainer } from '../../components/';
+import { SplashScreenContainer } from '../../components';
 
-const SplashScreen = () => {
-  return (
-    <SplashScreenContainer>
+const SplashScreen = () => (
+  <SplashScreenContainer>
+    <Link style={{ width: '100%' }} to="/game/find-match">
       <Button
         colorScheme="blueButton"
         isFullWidth
@@ -13,8 +13,10 @@ const SplashScreen = () => {
         height="2.5em"
         fontWeight="400"
       >
-        <Link to="/game/find-match">Find A Match</Link>
+        Find A match
       </Button>
+    </Link>
+    <Link style={{ width: '100%' }} to="/game/join-match">
       <Button
         colorScheme="purpleButton"
         isFullWidth
@@ -22,8 +24,10 @@ const SplashScreen = () => {
         height="2.5em"
         fontWeight="400"
       >
-        <Link to="/game/join-match">Join A Match</Link>
+        Join A match
       </Button>
+    </Link>
+    <Link style={{ width: '100%' }} to="/game/host-match">
       <Button
         isFullWidth
         fontSize="1.5em"
@@ -41,10 +45,10 @@ const SplashScreen = () => {
           color: 'brand.white',
         }}
       >
-        <Link to="/game/host-match">Host A Match</Link>
+        Host A Match
       </Button>
-    </SplashScreenContainer>
-  );
-};
+    </Link>
+  </SplashScreenContainer>
+);
 
 export default SplashScreen;

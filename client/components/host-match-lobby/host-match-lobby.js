@@ -9,7 +9,7 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { Link, useHistory } from 'react-router-dom';
-import { SplashScreenContainer } from '../../components/';
+import { SplashScreenContainer } from '../../components';
 import { CircleContext } from '../../context/circle';
 
 const HostMatchLobby = () => {
@@ -18,15 +18,23 @@ const HostMatchLobby = () => {
   const [maxPlayers, setMaxPlayers] = useState(0);
   const { lobbyId, isHost, socket } = useContext(CircleContext);
   const toast = useToast();
-  let history = useHistory();
+  const history = useHistory();
 
   const handleStartGame = () => {
     socket.emit('start-hosted-match', { gameid: lobbyId, hostid: socket.id });
   };
 
-  const handleStopHost = () => {
-    if (isHost)
-      socket.emit('stop-hosted-match', { gameid: lobbyId, hostid: socket.id });
+  const handleLeaveGame = () => {
+    if (isHost) {
+      socket.emit('stop-hosted-match', {
+        gameid: lobbyId,
+        hostid: socket.id,
+      });
+      return;
+    }
+
+    console.log(lobbyId);
+    socket.emit('player-left-hosted-match', { gameid: lobbyId });
   };
 
   useEffect(() => {
@@ -40,6 +48,7 @@ const HostMatchLobby = () => {
       if (isHost) {
         return history.push('/game/home');
       }
+
       return history.push('/game/edit-profile');
     });
 
@@ -69,7 +78,7 @@ const HostMatchLobby = () => {
         Waiting for players&nbsp;
         {totalPlayers !== 0 && `(${totalPlayers}/${maxPlayers})`}
       </Text>
-      <Spinner />
+      {totalPlayers.length !== maxPlayers && <Spinner />}
       <Box textAlign="left" width="100%">
         <List spacing={1}>
           {players.map((player, i) => (
@@ -96,17 +105,18 @@ const HostMatchLobby = () => {
           Start Game
         </Button>
       )}
-
-      <Button
-        colorScheme="purpleButton"
-        isFullWidth
-        fontSize="1.5em"
-        height="2.5em"
-        fontWeight="400"
-        onClick={handleStopHost}
-      >
-        <Link to="/game">Leave</Link>
-      </Button>
+      <Link style={{ width: '100%' }} to="/game">
+        <Button
+          colorScheme="purpleButton"
+          isFullWidth
+          fontSize="1.5em"
+          height="2.5em"
+          fontWeight="400"
+          onClick={handleLeaveGame}
+        >
+          {isHost ? 'Cancel' : 'Leave'}
+        </Button>
+      </Link>
     </SplashScreenContainer>
   );
 };

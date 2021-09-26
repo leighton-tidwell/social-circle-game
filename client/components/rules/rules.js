@@ -18,7 +18,6 @@ const Rules = () => (
           alignItems="center"
           justifyContent="center"
           position="relative"
-          minHeight="350px"
           minHeight={{ xs: '300px', sm: '350px' }}
           width={{ xs: '100%', md: '100%', lg: '100%', xl: '50%' }}
         >

@@ -9,7 +9,7 @@ import {
   ProfileIcon,
   RatingsIcon,
   DiceIcon,
-} from '../../components/';
+} from '../../components';
 
 const CircleInterface = ({ children }) => {
   const toast = useToast();
@@ -27,7 +27,7 @@ const CircleInterface = ({ children }) => {
     setLobbyId,
     setProfileSetupCount,
   } = useContext(CircleContext);
-  let history = useHistory();
+  const history = useHistory();
 
   const getWindowHeight = () => {
     const doc = document.documentElement;
@@ -44,8 +44,8 @@ const CircleInterface = ({ children }) => {
     }
 
     socket.on('player-joined-circle', () => {
-      setProfileSetupCount((prevCount) => prevCount + 1);
-      // toast({
+      setProfileSetupCount((previousCount) => previousCount + 1);
+      // Toast({
       //   title: 'A new player has joined!',
       //   position: 'top',
       //   isClosable: true,
@@ -98,7 +98,7 @@ const CircleInterface = ({ children }) => {
           isClosable: true,
           variant: 'left-accent',
         });
-        setRatingCount((prevCount) => prevCount + 1);
+        setRatingCount((previousCount) => previousCount + 1);
       }
 
       setRatingsOpen(status);
@@ -160,7 +160,7 @@ const CircleInterface = ({ children }) => {
         isClosable: true,
         variant: 'left-accent',
       });
-      setProfileSetupCount((prevCount) => prevCount - 1);
+      setProfileSetupCount((previousCount) => previousCount - 1);
     });
 
     return () => {
