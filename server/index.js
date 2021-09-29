@@ -31,7 +31,7 @@ db.once('open', function () {
 const app = express();
 app.use(
   cors({
-    origin: ['https://social-circle-game.vercel.app', 'localhost:3000'],
+    origin: ['https://social-circle-game.vercel.app', 'http://localhost:3000'],
   })
 );
 app.use(express.urlencoded({ extended: true }));
@@ -43,7 +43,7 @@ const hostuuid = new ShortUniqueId({ length: 6, dictionary: 'alpha_upper' });
 
 const io = new Server(server, {
   cors: {
-    origin: ['https://social-circle-game.vercel.app', 'localhost:3000'],
+    origin: ['https://social-circle-game.vercel.app', 'http://localhost:3000'],
     methods: ['GET', 'POST'],
   },
 });
@@ -511,6 +511,11 @@ io.on('connection', (socket) => {
     );
     socket.leave('FIND_MATCH');
     socket.join('IDLE_ROOM');
+    const clientsFindingMatch = io.sockets.adapter.rooms.get('FIND_MATCH');
+    io.to('FIND_MATCH').emit('update-finding-match-count', {
+      playersSearching: clientsFindingMatch.size,
+      playersRequired: MAX_PLAYERS,
+    });
   });
 
   socket.on('join-match', (room) => {
@@ -605,7 +610,16 @@ io.on('connection', (socket) => {
         { socketid: socket.id },
         { disconnected: true, gameid: '' }
       );
-      if (!playerData) return; // Player never started game
+      if (!playerData) {
+        // lets emit an updater to find match room to double check number of players
+        const clientsFindingMatch = io.sockets.adapter.rooms.get('FIND_MATCH');
+        io.to('FIND_MATCH').emit('update-finding-match-count', {
+          playersSearching: clientsFindingMatch.size,
+          playersRequired: MAX_PLAYERS,
+        });
+
+        return;
+      } // Player never started game
       const playerName = playerData.name || 'A player';
       const gameid = playerData.gameid;
       const isHost = playerData.host;
