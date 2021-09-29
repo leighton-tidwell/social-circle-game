@@ -31,7 +31,10 @@ const Footer = () => (
           </Link>
         </Stack>
         <Text fontWeight="300" color="brand.offtext">
-          Created by @leighton-tidwell
+          Created by{' '}
+          <Link href="https://github.com/leighton-tidwell">
+            @leighton-tidwell
+          </Link>
         </Text>
       </Center>
     </Container>
