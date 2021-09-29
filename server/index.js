@@ -243,11 +243,12 @@ io.on('connection', (socket) => {
   socket.on('start-private-chat', async ({ gameid, socketid, player }) => {
     const newChatId = uuid();
     const participants = [socketid, player];
-    const participantNames = await Promise.all(
-      participants.map(async (participant) => {
-        const user = await userModel.findOne({ socketid: participant });
+    const participantNames = await Promise.map(
+      participants,
+      async (participant) => {
+        const user = await userModel.findOne({ socketid: participant }).exec();
         return user.name;
-      })
+      }
     );
 
     const newChat = {
