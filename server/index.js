@@ -34,8 +34,8 @@ app.use(
     origin: ['https://social-circle-game.vercel.app', 'http://localhost:3000'],
   })
 );
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '16mb' }));
+app.use(express.json({ limit: '16mb' }));
 
 const server = http.createServer(app);
 const uuid = new ShortUniqueId({ length: 10 });
@@ -56,6 +56,16 @@ app.get('/total-games', async (req, res) => {
 app.get('/total-players', async (req, res) => {
   const totalPlayers = await userModel.find().distinct('socketid');
   res.json({ totalPlayers: totalPlayers.length });
+});
+
+app.post('/upload-profile', async (req, res) => {
+  const user = req.body.user;
+  const uploadUser = await userModel.findOneAndUpdate(
+    { gameid: user.gameid, socketid: user.socketid },
+    user
+  );
+
+  res.sendStatus(200);
 });
 
 app.post('/list-players', async (req, res) => {
@@ -199,19 +209,8 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('save-profile', async (user) => {
-    try {
-      const updatedUser = await userModel.findOneAndUpdate(
-        { gameid: user.gameid, socketid: user.socketid },
-        user
-      );
-
-      socket.emit('profile-saved-successfully');
-      io.to(user.gameid).emit('player-joined-circle', { user });
-    } catch (error) {
-      console.log(error);
-      socket.emit('profile-saved-unsuccessfully');
-    }
+  socket.on('save-profile', (user) => {
+    io.to(user.gameid).emit('player-joined-circle', { user });
   });
 
   socket.on('toggle-circle-chat', ({ value, gameid }) => {

@@ -33,7 +33,6 @@ const HostMatchLobby = () => {
       return;
     }
 
-    console.log(lobbyId);
     socket.emit('player-left-hosted-match', { gameid: lobbyId });
   };
 

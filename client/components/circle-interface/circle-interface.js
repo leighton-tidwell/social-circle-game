@@ -128,8 +128,10 @@ const CircleInterface = ({ children }) => {
         isClosable: true,
         variant: 'left-accent',
       });
-      history.push('/game');
-      history.go(0);
+      const timer = setTimeout(() => {
+        history.push('/game');
+        history.go(0);
+      }, 5000);
     });
 
     socket.on('new-private-chat', ({ playerName, chatid }) => {

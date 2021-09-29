@@ -127,7 +127,7 @@ const Profile = ({ editable, match }) => {
     setError('');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!profileData.name) return setError('Name is missing!');
     if (!profileData.age) return setError('Age is missing!');
     if (!profileData.relationshipStatus)
@@ -136,13 +136,24 @@ const Profile = ({ editable, match }) => {
     if (!profileData.profilePicture)
       return setError('You forgot a profile picture!');
 
+    setLoading(true);
     const user = {
       gameid: lobbyId,
       socketid: socket.id,
       ...profileData,
     };
-    socket.emit('save-profile', user);
-    setLoading(true);
+
+    try {
+      await axios.post(`${serverString}/upload-profile`, {
+        user,
+      });
+      socket.emit('save-profile', user);
+      setLoading(false);
+      history.push(`/game/profile/${socket.id}`);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
   };
 
   const isErrorField = (field) => {
