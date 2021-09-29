@@ -134,7 +134,7 @@ app.post('/get-ratings', async (req, res) => {
   return res.json({ listOfRatings });
 });
 
-const MAX_PLAYERS = 4;
+const MAX_PLAYERS = 9;
 
 io.on('connection', (socket) => {
   socket.join('IDLE_ROOM');
