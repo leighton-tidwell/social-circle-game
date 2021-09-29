@@ -29,7 +29,11 @@ db.once('open', function () {
 });
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: ['https://social-circle-game.vercel.app', 'localhost:3000'],
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -39,7 +43,7 @@ const hostuuid = new ShortUniqueId({ length: 6, dictionary: 'alpha_upper' });
 
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: ['https://social-circle-game.vercel.app', 'localhost:3000'],
     methods: ['GET', 'POST'],
   },
 });
