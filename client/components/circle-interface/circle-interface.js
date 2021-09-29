@@ -27,10 +27,11 @@ const CircleInterface = ({ children }) => {
     setInfluencerChatId,
     lobbyId,
     setLobbyId,
+    profileSetupCount,
     setProfileSetupCount,
     serverString,
   } = useContext(CircleContext);
-  const history = useHistory();
+  let history = useHistory();
 
   const getWindowHeight = () => {
     const doc = document.documentElement;
@@ -57,7 +58,8 @@ const CircleInterface = ({ children }) => {
         const fetchedPlayer = host[0];
         if (fetchedPlayer.socketid === socket.id && isHost !== true)
           setIsHost(true);
-        else if (isHost === true) setIsHost(false);
+        else if (isHost === true && fetchedPlayer.socketid !== socket.id)
+          setIsHost(false);
       } catch (error) {
         console.log(error);
       }
@@ -105,7 +107,6 @@ const CircleInterface = ({ children }) => {
           isClosable: true,
           variant: 'left-accent',
         });
-        history.push('/game/ratings');
       } else {
         toast({
           title: 'Ratings are now closed!',
@@ -176,6 +177,12 @@ const CircleInterface = ({ children }) => {
         variant: 'left-accent',
       });
       setProfileSetupCount((previousCount) => previousCount - 1);
+      if (profileSetupCount - 1 <= 3) {
+        alert(
+          'There are only three players remaining, the game has been concluded.'
+        );
+        return history.go(0);
+      }
     });
 
     return () => {
@@ -192,6 +199,10 @@ const CircleInterface = ({ children }) => {
       socket.off('blocked-player');
     };
   }, []);
+
+  useEffect(() => {
+    if (ratingsOpen) history.push('/game/ratings');
+  }, [ratingsOpen]);
 
   return (
     <Flex

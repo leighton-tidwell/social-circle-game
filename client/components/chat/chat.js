@@ -18,7 +18,6 @@ const Chat = () => {
 
   const sendMessage = async () => {
     if (!circleChatOpen) return;
-    console.log(chatMessage);
 
     const {
       data: { playerData },
@@ -53,7 +52,6 @@ const Chat = () => {
       } = await axios.post(`${serverString}/get-messages`, {
         gameid: lobbyId,
       });
-      console.log(listOfMessages);
       if (listOfMessages !== 0) setMessages(listOfMessages);
     } catch (error) {
       console.error(error);

@@ -7,7 +7,7 @@ import { CircleContext } from '../../context/circle';
 const JoinMatch = () => {
   const [matchCode, setMatchCode] = useState('');
   const { setLobbyId, socket } = useContext(CircleContext);
-  const history = useHistory();
+  let history = useHistory();
 
   const handleMatchCodeChange = (event) => {
     setMatchCode(event.target.value);

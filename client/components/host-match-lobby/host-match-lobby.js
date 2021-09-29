@@ -18,7 +18,7 @@ const HostMatchLobby = () => {
   const [maxPlayers, setMaxPlayers] = useState(0);
   const { lobbyId, isHost, socket } = useContext(CircleContext);
   const toast = useToast();
-  const history = useHistory();
+  let history = useHistory();
 
   const handleStartGame = () => {
     socket.emit('start-hosted-match', { gameid: lobbyId, hostid: socket.id });

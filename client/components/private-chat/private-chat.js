@@ -60,7 +60,6 @@ const PrivateChat = () => {
         gameid: lobbyId,
         chatid: id,
       });
-      console.log(listOfMessages);
       if (listOfMessages !== 0) setMessages(listOfMessages);
     } catch (error) {
       console.error(error);

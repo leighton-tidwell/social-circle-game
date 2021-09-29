@@ -6,6 +6,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const ShortUniqueId = require('short-unique-id');
 const mongoose = require('mongoose');
+const Promise = require('bluebird');
 const {
   userModel,
   messageModel,
@@ -369,7 +370,27 @@ io.on('connection', (socket) => {
       a.rating > b.rating ? 1 : -1
     );
 
-    io.to(gameid).emit('ratings-calculated', sortedScores);
+    const updatedPlayerList = await Promise.map(
+      sortedScores,
+      async (rating) => {
+        const individualPlayer = await userModel
+          .findOne({
+            socketid: rating.socketid,
+          })
+          .exec();
+        const ratedPlayer = {
+          name: individualPlayer.name,
+          profilePicture: individualPlayer.profilePicture,
+          socketid: individualPlayer.socketid,
+          rating: rating.rating,
+        };
+        return ratedPlayer;
+      }
+    );
+
+    console.log(updatedPlayerList[0].rating);
+
+    io.to(gameid).emit('ratings-calculated', updatedPlayerList);
 
     const influencerChat = uuid();
 

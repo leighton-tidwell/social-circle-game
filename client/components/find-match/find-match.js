@@ -9,7 +9,7 @@ const FindMatch = () => {
   const [matchPlayers, setMatchPlayers] = useState(0);
   const toast = useToast();
   const { setLobbyId, setIsHost, socket } = useContext(CircleContext);
-  const history = useHistory();
+  let history = useHistory();
 
   const handleCancelMatch = () => {
     socket.emit('stop-find-match');
@@ -37,7 +37,7 @@ const FindMatch = () => {
       ({ playersSearching, playersRequired }) => {
         setSearchingPlayers(playersSearching);
         setMatchPlayers(playersRequired);
-      },
+      }
     );
 
     socket.emit('find-match');

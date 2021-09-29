@@ -20,10 +20,11 @@ const Ratings = () => {
   const [playerList, setPlayerList] = useState([]);
   const [playersSubmittedRatings, setPlayersSubmittedRatings] = useState([]);
   const [ratings, setRatings] = useState([]);
+  const [playerRanking, setPlayerRanking] = useState([]);
   const toast = useToast();
   const { socket, isHost, lobbyId, serverString, ratingsOpen } =
     useContext(CircleContext);
-  const history = useHistory();
+  let history = useHistory();
 
   const fetchPlayerList = async () => {
     try {
@@ -32,7 +33,6 @@ const Ratings = () => {
       } = await axios.post(`${serverString}/list-players`, {
         gameid: lobbyId,
       });
-      console.log(fetchedPlayerList);
       if (fetchedPlayerList) setPlayerList(fetchedPlayerList);
     } catch (error) {
       console.error(error);
@@ -142,7 +142,6 @@ const Ratings = () => {
   };
 
   const finishRatings = () => {
-    console.log('emitting', lobbyId);
     socket.emit('finish-ratings', { gameid: lobbyId });
   };
 
@@ -181,18 +180,19 @@ const Ratings = () => {
       fetchRatings();
     });
 
+    socket.on('ratings-calculated', (sortedPlayers) => {
+      setPlayerList(sortedPlayers);
+    });
+
     fetchPlayerList();
 
     return () => {
       socket.off('player-joined-circle');
       socket.off('player-disconnected');
       socket.off('rating-submitted');
+      socket.off('ratings-calculated');
     };
   }, []);
-
-  useEffect(() => {
-    console.log(ratings);
-  }, [ratings]);
 
   return (
     <>
@@ -216,7 +216,7 @@ const Ratings = () => {
             height={{ xs: '80%', md: '95%' }}
             marginBottom={{ xs: '-3em', md: '0px' }}
           >
-            {playerList.map((player) => (
+            {playerList.map((player, i) => (
               <GridItem
                 key={player.socketid}
                 border="1px"
@@ -239,7 +239,13 @@ const Ratings = () => {
                 <Text fontSize="1.5em" fontWeight="600">
                   {player.name}
                 </Text>
-                {showSpinnerOrInput(player)}
+                {player.rating ? (
+                  <Text fontSize="1.2em" fontWeight="800">
+                    {i + 1}
+                  </Text>
+                ) : (
+                  showSpinnerOrInput(player)
+                )}
               </GridItem>
             ))}
           </Grid>

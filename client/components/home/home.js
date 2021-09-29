@@ -25,7 +25,7 @@ const Home = () => {
     circleChatOpen,
     profileSetupCount,
   } = useContext(CircleContext);
-  const history = useHistory();
+  let history = useHistory();
 
   const goToPlayerProfile = (profile) => {
     history.push(`/game/profile/${profile}`);
@@ -166,7 +166,6 @@ const Home = () => {
                 Open Circle Chat
               </Button>
             )}
-            <Button colorScheme="purpleButton">Ask Me Anything</Button>
             <Button
               onClick={toggleRatingsHandler}
               colorScheme="purpleButton"

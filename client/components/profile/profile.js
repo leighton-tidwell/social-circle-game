@@ -18,7 +18,7 @@ import axios from 'axios';
 import { CircleInterface } from '../../components';
 import { CircleContext } from '../../context/circle';
 
-const Profile = ({ editable, match, ...props }) => {
+const Profile = ({ editable, match }) => {
   const [profileData, setProfileData] = useState({
     name: '',
     age: '',
@@ -30,7 +30,7 @@ const Profile = ({ editable, match, ...props }) => {
   const [loading, setLoading] = useState(false);
   const { id } = useParams();
   const { lobbyId, socket, serverString } = useContext(CircleContext);
-  const history = useHistory();
+  let history = useHistory();
 
   const openImageUpload = () => {
     document.querySelector('#profile-upload').click();
@@ -175,6 +175,7 @@ const Profile = ({ editable, match, ...props }) => {
         });
       }
     };
+
     fetchData();
     return () => {
       socket.off('profile-saved-successfully');

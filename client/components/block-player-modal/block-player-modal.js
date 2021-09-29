@@ -21,7 +21,7 @@ import {
   AlertDescription,
   CloseButton,
 } from '@chakra-ui/react';
-import { CircleContext, socket } from '../../context/circle';
+import { CircleContext } from '../../context/circle';
 import { SendIcon } from '../../components';
 
 const BlockPlayerModal = () => {
@@ -37,6 +37,7 @@ const BlockPlayerModal = () => {
     setInfluencerChatId,
     serverString,
     lobbyId,
+    socket,
   } = useContext(CircleContext);
 
   const closeModal = () => {
@@ -58,7 +59,6 @@ const BlockPlayerModal = () => {
       } = await axios.post(`${serverString}/list-players`, {
         gameid: lobbyId,
       });
-      console.log(fetchedPlayerList);
       if (fetchedPlayerList) setFetchedPlayerList(fetchedPlayerList);
     } catch (error) {
       console.error(error);
@@ -101,7 +101,6 @@ const BlockPlayerModal = () => {
     fetchPlayerList();
 
     socket.on('influencer-chat', ({ name, message }) => {
-      console.log(name, message);
       setMessages((previousMessages) => [
         ...previousMessages,
         { name, message },
@@ -119,6 +118,7 @@ const BlockPlayerModal = () => {
 
     return () => {
       socket.off('influencer-chat');
+      socket.off('block-error');
       socket.off('block-error');
     };
   }, []);
@@ -151,14 +151,14 @@ const BlockPlayerModal = () => {
               </Text>
             </Box>
             <Divider borderColor="brand.offtext" />
-            {messages.map((message) => (
-              <>
+            {messages.map((message, i) => (
+              <React.Fragment key={i}>
                 <Box>
                   <Text fontWeight="800">{message.name}</Text>
                   <Text>{message.message}</Text>
                 </Box>
                 <Divider borderColor="brand.offtext" />
-              </>
+              </React.Fragment>
             ))}
           </Stack>
           <Box display="flex" mb={2}>
@@ -177,6 +177,7 @@ const BlockPlayerModal = () => {
           <Box>
             <Select
               onChange={updateBlockedPlayer}
+              value={blockedPlayer}
               placeholder="Select a Player"
             >
               {fetchedPlayerList.map((player) => (
