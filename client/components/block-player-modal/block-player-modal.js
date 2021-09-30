@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import axios from 'axios';
 import {
   Modal,
@@ -39,9 +39,14 @@ const BlockPlayerModal = () => {
     lobbyId,
     socket,
   } = useContext(CircleContext);
+  const messagesEndRef = useRef(null);
 
   const closeModal = () => {
     setError('You must select a player to block.');
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const clearError = () => {
@@ -74,6 +79,7 @@ const BlockPlayerModal = () => {
   };
 
   const sendMessage = async () => {
+    if (enteredMessage.trim() === '') return;
     const {
       data: { playerData },
     } = await axios.post(`${serverString}/player-information`, {
@@ -90,6 +96,8 @@ const BlockPlayerModal = () => {
     };
 
     socket.emit('send-influencer-message', message);
+    setEnteredMessage('');
+    scrollToBottom();
   };
 
   const blockPlayer = () => {
@@ -105,6 +113,7 @@ const BlockPlayerModal = () => {
         ...previousMessages,
         { name, message },
       ]);
+      scrollToBottom();
     });
 
     socket.on('block-error', (message) => {
@@ -143,23 +152,26 @@ const BlockPlayerModal = () => {
             }}
             mb={2}
           >
-            <Box>
-              <Text fontWeight="800">The Circle</Text>
-              <Text>
+            <Box borderRadius="8px" padding={2} backgroundColor="white">
+              <Text color="brand.main" fontWeight="800">
+                The Circle
+              </Text>
+              <Text color="brand.offtext">
                 Welcome to influencer chat! The two of you must decide which
                 player gets blocked.
               </Text>
             </Box>
-            <Divider borderColor="brand.offtext" />
-            {messages.map((message, i) => (
+            {messages.map((message, i, array) => (
               <React.Fragment key={i}>
-                <Box>
-                  <Text fontWeight="800">{message.name}</Text>
-                  <Text>{message.message}</Text>
+                <Box borderRadius="8px" padding={2} backgroundColor="white">
+                  <Text color="brand.main" fontWeight="800">
+                    {message.name}
+                  </Text>
+                  <Text color="brand.offtext">{message.message}</Text>
                 </Box>
-                <Divider borderColor="brand.offtext" />
               </React.Fragment>
             ))}
+            <div sx={{ display: 'none' }} ref={messagesEndRef} />
           </Stack>
           <Box display="flex" mb={2}>
             <Textarea
@@ -167,8 +179,14 @@ const BlockPlayerModal = () => {
               size="sm"
               resize="none"
               mr={2}
+              borderRadius="8px"
               value={enteredMessage}
               onChange={handleChangeEnteredMessage}
+              onKeyPress={(event) => {
+                if (event.key === 'Enter') {
+                  sendMessage();
+                }
+              }}
             />
             <Button height="5em" colorScheme="blueButton" onClick={sendMessage}>
               <SendIcon boxSize="2em" />
@@ -180,9 +198,10 @@ const BlockPlayerModal = () => {
               value={blockedPlayer}
               placeholder="Select a Player"
             >
-              {fetchedPlayerList.map((player) => (
-                <option value={player.socketid}>{player.name}</option>
-              ))}
+              {fetchedPlayerList.map((player) => {
+                if (player.socketid !== socket.id)
+                  return <option value={player.socketid}>{player.name}</option>;
+              })}
             </Select>
           </Box>
           {error && (

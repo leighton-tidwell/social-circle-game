@@ -18,12 +18,18 @@ import { CircleContext } from '../../context/circle';
 
 const Ratings = () => {
   const [playerList, setPlayerList] = useState([]);
-  const [playersSubmittedRatings, setPlayersSubmittedRatings] = useState([]);
   const [ratings, setRatings] = useState([]);
-  const [playerRanking, setPlayerRanking] = useState([]);
   const toast = useToast();
-  const { socket, isHost, lobbyId, serverString, ratingsOpen } =
-    useContext(CircleContext);
+  const {
+    socket,
+    isHost,
+    lobbyId,
+    serverString,
+    ratingsOpen,
+    ratingCount,
+    playersSubmittedRatings,
+    setPlayersSubmittedRatings,
+  } = useContext(CircleContext);
   let history = useHistory();
 
   const fetchPlayerList = async () => {
@@ -67,11 +73,11 @@ const Ratings = () => {
       const uniqueRatings = new Set(arrayOfRatings);
       if (uniqueRatings.size !== arrayOfRatings.length)
         throw new Error('You must give each player a unique rating.');
-
       socket.emit('submit-ratings', {
         gameid: lobbyId,
         player: socket.id,
         ratings,
+        ratingCount: ratingCount,
       });
     } catch (error) {
       toast({
@@ -90,6 +96,7 @@ const Ratings = () => {
         data: { listOfRatings },
       } = await axios.post(`${serverString}/get-ratings`, {
         gameid: lobbyId,
+        ratingCount: ratingCount,
       });
       if (!listOfRatings) return;
 
@@ -142,11 +149,15 @@ const Ratings = () => {
   };
 
   const finishRatings = () => {
-    socket.emit('finish-ratings', { gameid: lobbyId });
+    setPlayersSubmittedRatings([]); // Clear out the players who submitted ratings.
+    socket.emit('finish-ratings', {
+      gameid: lobbyId,
+      ratingCount: ratingCount,
+    });
   };
 
   const showSubmitRatingsButton = () => {
-    if (!isHost && !playersSubmittedRatings.includes(socket.id))
+    if (!isHost && !playersSubmittedRatings.includes(socket.id) && ratingsOpen)
       return (
         <Button colorScheme="blueButton" onClick={submitRatings}>
           Submit Ratings
@@ -161,6 +172,9 @@ const Ratings = () => {
       );
 
     if (isHost) return <Text fontWeight="800">Waiting for players...</Text>;
+
+    if (isHost && !ratingsOpen)
+      return <Text fontWeight="800">Ratings are closed.</Text>;
 
     return <Text fontWeight="800">Waiting for host...</Text>;
   };

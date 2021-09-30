@@ -14,7 +14,7 @@ const JoinMatch = () => {
   };
 
   const handleJoinMatch = () => {
-    if (matchCode) socket.emit('join-match', matchCode);
+    if (matchCode) socket.emit('join-match', matchCode.toUpperCase());
   };
 
   useEffect(() => {

@@ -1,14 +1,6 @@
 import React, { useEffect, useContext, useState, useRef } from 'react';
-import {
-  Box,
-  Stack,
-  Avatar,
-  Text,
-  Textarea,
-  Button,
-  Link,
-} from '@chakra-ui/react';
-import { useParams } from 'react-router-dom';
+import { Box, Stack, Avatar, Text, Textarea, Button } from '@chakra-ui/react';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { CircleContext } from '../../context/circle';
 import { CircleInterface, SendIcon } from '../../components';
@@ -27,6 +19,7 @@ const PrivateChat = () => {
   };
 
   const sendMessage = async () => {
+    if (chatMessage.trim() === '') return;
     const {
       data: { playerData },
     } = await axios.post(`${serverString}/player-information`, {
@@ -61,6 +54,7 @@ const PrivateChat = () => {
         chatid: id,
       });
       if (listOfMessages !== 0) setMessages(listOfMessages);
+      scrollToBottom();
     } catch (error) {
       console.error(error);
     }
@@ -123,22 +117,14 @@ const PrivateChat = () => {
                 <Link to={`/game/profile/${message.socketid}`}>
                   <Avatar src={message.avatar} size="lg" mr={2} />
                 </Link>
-                <Box
-                  borderRadius="8px"
-                  padding={2}
-                  backgroundColor={
-                    i % 2 === 0 && array[i - 1]?.socketid !== message.socketid
-                      ? '#667EEA'
-                      : '#69399A'
-                  }
-                >
-                  <Text color="brand.white" fontWeight="800">
+                <Box borderRadius="8px" padding={2} backgroundColor="white">
+                  <Text color="brand.main" fontWeight="800">
                     <Link to={`/game/profile/${message.socketid}`}>
                       {message.name}
                     </Link>
                   </Text>
                   <Text
-                    color="brand.white"
+                    color="brand.offtext"
                     sx={{
                       whiteSpace: 'normal',
                       wordWrap: 'break-all',
@@ -160,6 +146,11 @@ const PrivateChat = () => {
               resize="none"
               value={chatMessage}
               onChange={handleChangeMessage}
+              onKeyPress={(event) => {
+                if (event.key === 'Enter') {
+                  sendMessage();
+                }
+              }}
             />
             <Button
               onClick={sendMessage}

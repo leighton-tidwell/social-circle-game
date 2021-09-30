@@ -148,6 +148,10 @@ const RatingsSchema = new mongoose.Schema({
     type: Array,
     required: true,
   },
+  ratingCount: {
+    type: Number,
+    required: true,
+  },
 });
 
 const Ratings = mongoose.model('Ratings', RatingsSchema);

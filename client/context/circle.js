@@ -36,4 +36,6 @@ export const CircleContext = React.createContext({
   setShowBlockPlayerModal: () => {},
   influencerChatId: null,
   setInfluencerChatId: () => {},
+  playersSubmittedRatings: [],
+  setPlayersSubmittedRatings: () => {},
 });

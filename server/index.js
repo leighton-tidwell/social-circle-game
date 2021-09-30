@@ -122,6 +122,17 @@ app.post('/get-private-chat-list', async (req, res) => {
   return res.json({ listOfChats });
 });
 
+app.post('/get-user-private-chats', async (req, res) => {
+  const gameid = req.body.gameid;
+  const socketid = req.body.socketid;
+  const listOfChats = await privateChatModel.find({ gameid: gameid });
+  const userChats = listOfChats.filter((chat) =>
+    chat.participants.includes(socketid)
+  );
+
+  return res.json({ userChats });
+});
+
 app.post('/get-newsfeed', async (req, res) => {
   const gameid = req.body.gameid;
   const newsFeed = await newsFeedModel.find({ gameid: gameid });
@@ -139,12 +150,17 @@ app.post('/player-information', async (req, res) => {
 
 app.post('/get-ratings', async (req, res) => {
   const gameid = req.body.gameid;
-  const listOfRatings = await ratingsModel.find({ gameid: gameid });
+  const ratingCount = req.body.ratingCount;
+  const listOfRatings = await ratingsModel.find({
+    gameid: gameid,
+    ratingCount: ratingCount,
+  });
 
   return res.json({ listOfRatings });
 });
 
-const MAX_PLAYERS = 9;
+const MAX_PLAYERS = 6;
+const MAX_RATINGS = 3;
 
 io.on('connection', (socket) => {
   socket.join('IDLE_ROOM');
@@ -242,6 +258,20 @@ io.on('connection', (socket) => {
   socket.on('start-private-chat', async ({ gameid, socketid, player }) => {
     const newChatId = uuid();
     const participants = [socketid, player];
+
+    // lets check to see if an existing private chat is here
+    const listOfChats = await privateChatModel.find({ gameid: gameid });
+    const foundChat = listOfChats.filter(
+      (chat) =>
+        chat.participants.includes(socketid) &&
+        chat.participants.includes(player)
+    );
+    if (foundChat.length !== 0) {
+      const clientSocket = io.sockets.sockets.get(socketid);
+      clientSocket.emit('go-to-chat', { chatid: foundChat[0].chatid });
+      return;
+    }
+
     const participantNames = await Promise.map(
       participants,
       async (participant) => {
@@ -265,22 +295,25 @@ io.on('connection', (socket) => {
     }
 
     participants.forEach((participant) => {
-      io.sockets.sockets.get(participant).join(newChatId);
+      const clientSocket = io.sockets.sockets.get(participant);
+      clientSocket.join(newChatId);
+      if (clientSocket.id !== socketid)
+        clientSocket.emit('new-private-chat', {
+          playerName: participantNames[1],
+          chatid: newChatId,
+        });
     });
 
-    io.to(newChatId).emit('new-private-chat', {
-      playerName: participantNames[1],
-      chatid: newChatId,
-    });
+    socket.emit('go-to-chat', { chatid: newChatId });
+
+    const host = await userModel.findOne({ gameid: gameid, host: true });
+    const hostSocket = host.socketid;
+    io.sockets.sockets.get(hostSocket).join(newChatId);
 
     io.to(gameid).emit('host-new-private-chat', {
       playerNames: participantNames,
       chatid: newChatId,
     });
-
-    const host = await userModel.findOne({ gameid: gameid, host: true });
-    const hostSocket = host.socketid;
-    io.sockets.sockets.get(hostSocket).join(newChatId);
   });
 
   socket.on('send-private-chat', async (newMessage) => {
@@ -332,21 +365,28 @@ io.on('connection', (socket) => {
     io.to(gameid).emit('toggle-ratings', value);
   });
 
-  socket.on('submit-ratings', async ({ gameid, player, ratings }) => {
-    const newRating = {
-      gameid,
-      socketid: player,
-      rating: ratings,
-    };
+  socket.on(
+    'submit-ratings',
+    async ({ gameid, player, ratings, ratingCount }) => {
+      const newRating = {
+        gameid,
+        socketid: player,
+        rating: ratings,
+        ratingCount,
+      };
 
-    const saveRating = new ratingsModel(newRating);
-    await saveRating.save();
+      const saveRating = new ratingsModel(newRating);
+      await saveRating.save();
 
-    io.to(gameid).emit('rating-submitted');
-  });
+      io.to(gameid).emit('rating-submitted');
+    }
+  );
 
-  socket.on('finish-ratings', async ({ gameid }) => {
-    const getRatings = await ratingsModel.find({ gameid: gameid });
+  socket.on('finish-ratings', async ({ gameid, ratingCount }) => {
+    const getRatings = await ratingsModel.find({
+      gameid: gameid,
+      ratingCount: ratingCount,
+    });
     const listOfRatings = getRatings.map((user) => user.rating);
 
     let ratedScores = [];
@@ -392,9 +432,19 @@ io.on('connection', (socket) => {
       }
     );
 
-    console.log(updatedPlayerList[0].rating);
-
     io.to(gameid).emit('ratings-calculated', updatedPlayerList);
+
+    if (ratingCount === MAX_RATINGS - 1) {
+      io.to(gameid).emit('next-rating-last');
+    }
+
+    if (ratingCount >= MAX_RATINGS) {
+      io.to(gameid).emit('game-over', {
+        winnerOne: updatedPlayerList[0].name,
+        winnerTwo: updatedPlayerList[1].name,
+      });
+      return;
+    }
 
     const influencerChat = uuid();
 

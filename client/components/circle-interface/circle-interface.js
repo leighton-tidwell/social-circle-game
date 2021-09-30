@@ -6,7 +6,7 @@ import axios from 'axios';
 import {
   HomeIcon,
   MessageIcon,
-  NewsfeedIcon,
+  InboxIcon,
   ProfileIcon,
   RatingsIcon,
   DiceIcon,
@@ -20,6 +20,7 @@ const CircleInterface = ({ children }) => {
     setCircleChatOpen,
     ratingsOpen,
     setRatingsOpen,
+    ratingCount,
     setRatingCount,
     socket,
     setRatedPlayers,
@@ -30,6 +31,7 @@ const CircleInterface = ({ children }) => {
     profileSetupCount,
     setProfileSetupCount,
     serverString,
+    setPlayersSubmittedRatings,
   } = useContext(CircleContext);
   let history = useHistory();
 
@@ -109,11 +111,13 @@ const CircleInterface = ({ children }) => {
         });
       } else {
         toast({
-          title: 'Ratings are now closed!',
+          title:
+            'Ratings are now closed! The top two rated players are now picking a player to block!',
           position: 'top',
           isClosable: true,
           variant: 'left-accent',
         });
+        setPlayersSubmittedRatings([]);
         setRatingCount((previousCount) => previousCount + 1);
       }
 
@@ -141,18 +145,20 @@ const CircleInterface = ({ children }) => {
         isClosable: true,
         variant: 'left-accent',
       });
+    });
+
+    socket.on('go-to-chat', ({ chatid }) => {
       history.push(`/game/chat/${chatid}`);
     });
 
     socket.on('host-new-private-chat', ({ playerNames, chatid }) => {
       if (!isHost) return;
       toast({
-        title: `${playerNames.join(',')} have opened a new private chat!`,
+        title: `${playerNames.join(' and ')} have opened a new private chat!`,
         position: 'top',
         isClosable: true,
         variant: 'left-accent',
       });
-      history.push(`/game/chat/${chatid}`);
     });
 
     socket.on('ratings-calculated', (sortedScores) => {
@@ -166,7 +172,6 @@ const CircleInterface = ({ children }) => {
     });
 
     socket.on('blocked', () => {
-      setLobbyId(null);
       history.push('/game/blocked');
     });
 
@@ -179,12 +184,28 @@ const CircleInterface = ({ children }) => {
         variant: 'left-accent',
       });
       setProfileSetupCount((previousCount) => previousCount - 1);
-      if (profileSetupCount - 1 <= 3) {
-        alert(
-          'There are only three players remaining, the game has been concluded.'
-        );
-        return history.go(0);
-      }
+    });
+
+    socket.on('game-over', ({ winnerOne, winnerTwo }) => {
+      toast({
+        title: `The game has now concluded. ${winnerOne} and ${winnerTwo} were deemed the most popular!`,
+        position: 'top',
+        isClosable: true,
+        variant: 'left-accent',
+      });
+      const timer = setTimeout(() => {
+        history.push('/game');
+        history.go(0);
+      }, 5000);
+    });
+
+    socket.on('next-rating-last', () => {
+      toast({
+        title: `The next rating will be the last!`,
+        position: 'top',
+        isClosable: true,
+        variant: 'left-accent',
+      });
     });
 
     return () => {
@@ -199,6 +220,8 @@ const CircleInterface = ({ children }) => {
       socket.off('block-player-modal');
       socket.off('blocked');
       socket.off('blocked-player');
+      socket.off('game-over');
+      socket.off('next-rating-last');
     };
   }, []);
 
@@ -266,14 +289,14 @@ const CircleInterface = ({ children }) => {
                   />
                 </Box>
               </Link>
-              <Link to="/game/newsfeed">
+              <Link to="/game/private-messages">
                 <Box
                   pl={{ xs: 2, lg: 6 }}
                   pr={{ xs: 2, lg: 6 }}
                   pb={{ xs: 2, lg: 3 }}
                   pt={{ xs: 3 }}
                 >
-                  <NewsfeedIcon
+                  <InboxIcon
                     color="brand.offtext"
                     fill="brand.offtext"
                     height={{ xs: '32px', lg: '40px' }}
@@ -315,7 +338,7 @@ const CircleInterface = ({ children }) => {
                   </Box>
                 </Link>
               )}
-              <Box
+              {/* <Box
                 pl={{ xs: 2, lg: 6 }}
                 pr={{ xs: 2, lg: 6 }}
                 pb={{ xs: 2, lg: 3 }}
@@ -327,7 +350,7 @@ const CircleInterface = ({ children }) => {
                   height={{ xs: '32px', lg: '40px' }}
                   width={{ xs: '32px', lg: '40px' }}
                 />
-              </Box>
+              </Box> */}
             </Stack>
           </Box>
           <Box
