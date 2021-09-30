@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Flex, Spacer, Heading, Container } from '@chakra-ui/react';
+import { DiscordIcon } from '..';
 import Link from 'next/link.js';
 
 const Navigation = () => (
@@ -21,7 +22,7 @@ const Navigation = () => (
           </Heading>
         </Box>
         <Spacer />
-        <Box>
+        <Box display="flex">
           <Link href="/game">
             <Box
               as="button"
@@ -39,6 +40,16 @@ const Navigation = () => (
               }}
             >
               Play The Game
+            </Box>
+          </Link>
+          <Link isExternal href="https://discord.gg/d8GWXyyPw8">
+            <Box ml={2} p={2} cursor="pointer">
+              <DiscordIcon
+                color="brand.main"
+                fill="brand.main"
+                height={{ xs: '32px', lg: '40px' }}
+                width={{ xs: '32px', lg: '40px' }}
+              />
             </Box>
           </Link>
         </Box>

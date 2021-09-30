@@ -27,3 +27,4 @@ export { default as BlockPlayerModal } from './block-player-modal/block-player-m
 export { default as Blocked } from './blocked/blocked';
 export { default as InboxIcon } from './inbox-icon/inbox-icon';
 export { default as PrivateMessages } from './private-messages/private-messages';
+export { default as DiscordIcon } from './discord-icon/discord-icon';
