@@ -80,9 +80,11 @@ const PrivateChat = () => {
     fetchParticipants();
     scrollToBottom();
 
-    socket.on('new-private-message', () => {
-      fetchMessages();
+    socket.on('new-private-message', (message) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+      scrollToBottom();
     });
+
     return () => {
       socket.off('new-private-message');
     };

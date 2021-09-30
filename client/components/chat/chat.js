@@ -64,8 +64,9 @@ const Chat = () => {
       scrollToBottom();
     });
 
-    socket.on('new-circle-message', () => {
-      fetchMessages();
+    socket.on('new-circle-message', (message) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+      scrollToBottom();
     });
 
     scrollToBottom();

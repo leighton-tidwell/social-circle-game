@@ -251,7 +251,7 @@ io.on('connection', (socket) => {
         console.log(error);
       }
 
-      io.to(newMessage.gameid).emit('new-circle-message');
+      io.to(newMessage.gameid).emit('new-circle-message', saveMessage);
     } catch (error) {
       console.log(error);
     }
@@ -334,7 +334,7 @@ io.on('connection', (socket) => {
         console.log(error);
       }
 
-      io.to(newMessage.chatid).emit('new-private-message');
+      io.to(newMessage.chatid).emit('new-private-message', saveMessage);
     } catch (error) {
       console.log(error);
     }
