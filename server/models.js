@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
   gameid: {
     type: String,
-    required: true,
   },
   socketid: {
     type: String,

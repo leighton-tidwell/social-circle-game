@@ -46,6 +46,8 @@ const io = new Server(server, {
     origin: ['https://social-circle-game.vercel.app', 'http://localhost:3000'],
     methods: ['GET', 'POST'],
   },
+  pingInterval: 10000,
+  pingTimeout: 10000,
 });
 
 app.get('/total-games', async (req, res) => {
@@ -60,9 +62,10 @@ app.get('/total-players', async (req, res) => {
 
 app.post('/upload-profile', async (req, res) => {
   const user = req.body.user;
-  const uploadUser = await userModel.findOneAndUpdate(
-    { gameid: user.gameid, socketid: user.socketid },
-    user
+  const savedUser = await userModel.findOneAndUpdate(
+    { socketid: user.socketid },
+    user,
+    { upsert: true }
   );
 
   res.sendStatus(200);
@@ -159,7 +162,7 @@ app.post('/get-ratings', async (req, res) => {
   return res.json({ listOfRatings });
 });
 
-const MAX_PLAYERS = 6;
+const MAX_PLAYERS = 7;
 const MAX_RATINGS = 3;
 
 io.on('connection', (socket) => {
@@ -204,9 +207,8 @@ io.on('connection', (socket) => {
           hostSocketId = clientSocket.id;
         }
 
-        const newUser = new userModel(newUserData);
         try {
-          await newUser.save();
+          await userModel.findOneAndUpdate({ socketid: clientId }, newUserData);
           i++;
         } catch (error) {
           console.log(error);
@@ -225,9 +227,9 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('save-profile', (user) => {
-    io.to(user.gameid).emit('player-joined-circle', { user });
-  });
+  // socket.on('save-profile', (user) => {
+  //   io.to(user.gameid).emit('player-joined-circle', { user });
+  // });
 
   socket.on('toggle-circle-chat', ({ value, gameid }) => {
     io.to(gameid).emit('toggle-circle-chat', value);

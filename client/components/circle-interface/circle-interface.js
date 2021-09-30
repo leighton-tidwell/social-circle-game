@@ -28,8 +28,6 @@ const CircleInterface = ({ children }) => {
     setInfluencerChatId,
     lobbyId,
     setLobbyId,
-    profileSetupCount,
-    setProfileSetupCount,
     serverString,
     setPlayersSubmittedRatings,
   } = useContext(CircleContext);
@@ -67,10 +65,6 @@ const CircleInterface = ({ children }) => {
       }
     };
     checkIsHost();
-
-    socket.on('player-joined-circle', () => {
-      setProfileSetupCount((previousCount) => previousCount + 1);
-    });
 
     socket
       .off('player-disconnected')

@@ -17,6 +17,7 @@ import {
   Ratings,
   Blocked,
   PrivateMessages,
+  SetupProfile,
 } from '../../components';
 
 const GamePage = () => {

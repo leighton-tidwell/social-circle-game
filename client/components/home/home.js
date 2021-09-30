@@ -16,15 +16,8 @@ import { CircleContext } from '../../context/circle';
 
 const Home = () => {
   const [playerList, setPlayerList] = useState([]);
-  const {
-    socket,
-    isHost,
-    lobbyId,
-    serverString,
-    ratingsOpen,
-    circleChatOpen,
-    profileSetupCount,
-  } = useContext(CircleContext);
+  const { socket, isHost, lobbyId, serverString, ratingsOpen, circleChatOpen } =
+    useContext(CircleContext);
   let history = useHistory();
 
   const goToPlayerProfile = (profile) => {
@@ -141,10 +134,7 @@ const Home = () => {
             </GridItem>
           ))}
         </Grid>
-        {isHost && profileSetupCount !== playerList.length && (
-          <Text>Waiting for players to setup profiles...</Text>
-        )}
-        {isHost && profileSetupCount === playerList.length && (
+        {isHost && (
           <Grid
             gap={1}
             templateColumns={{ xs: 'repeat(2,1fr)', lg: 'repeat(4,1fr)' }}
