@@ -299,7 +299,7 @@ io.on('connection', (socket) => {
       clientSocket.join(newChatId);
       if (clientSocket.id !== socketid)
         clientSocket.emit('new-private-chat', {
-          playerName: participantNames[1],
+          playerName: participantNames[0],
           chatid: newChatId,
         });
     });
