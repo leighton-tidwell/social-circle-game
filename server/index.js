@@ -511,11 +511,15 @@ io.on('connection', (socket) => {
     );
     socket.leave('FIND_MATCH');
     socket.join('IDLE_ROOM');
-    const clientsFindingMatch = io.sockets.adapter.rooms.get('FIND_MATCH');
-    io.to('FIND_MATCH').emit('update-finding-match-count', {
-      playersSearching: clientsFindingMatch.size,
-      playersRequired: MAX_PLAYERS,
-    });
+    try {
+      const clientsFindingMatch = io.sockets.adapter.rooms.get('FIND_MATCH');
+      io.to('FIND_MATCH').emit('update-finding-match-count', {
+        playersSearching: clientsFindingMatch.size,
+        playersRequired: MAX_PLAYERS,
+      });
+    } catch (error) {
+      console.log('Error when updating find match.', error);
+    }
   });
 
   socket.on('join-match', (room) => {
@@ -539,13 +543,17 @@ io.on('connection', (socket) => {
   });
 
   socket.on('player-left-hosted-match', ({ gameid }) => {
-    const totalPlayers = io.sockets.adapter.rooms.get(gameid).size;
-    socket.leave(gameid);
-    socket.join('IDLE_ROOM');
-    io.to(gameid).emit('player-joined', {
-      totalPlayers: totalPlayers - 1,
-      maxPlayers: MAX_PLAYERS,
-    });
+    try {
+      const totalPlayers = io.sockets.adapter.rooms.get(gameid).size;
+      socket.leave(gameid);
+      socket.join('IDLE_ROOM');
+      io.to(gameid).emit('player-joined', {
+        totalPlayers: totalPlayers - 1,
+        maxPlayers: MAX_PLAYERS,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   });
 
   socket.on('host-match', () => {
@@ -611,12 +619,17 @@ io.on('connection', (socket) => {
         { disconnected: true, gameid: '' }
       );
       if (!playerData) {
-        // lets emit an updater to find match room to double check number of players
-        const clientsFindingMatch = io.sockets.adapter.rooms.get('FIND_MATCH');
-        io.to('FIND_MATCH').emit('update-finding-match-count', {
-          playersSearching: clientsFindingMatch.size,
-          playersRequired: MAX_PLAYERS,
-        });
+        try {
+          // lets emit an updater to find match room to double check number of players
+          const clientsFindingMatch =
+            io.sockets.adapter.rooms.get('FIND_MATCH');
+          io.to('FIND_MATCH').emit('update-finding-match-count', {
+            playersSearching: clientsFindingMatch.size,
+            playersRequired: MAX_PLAYERS,
+          });
+        } catch (error) {
+          console.log(error);
+        }
 
         return;
       } // Player never started game
