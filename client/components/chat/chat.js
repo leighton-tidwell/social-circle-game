@@ -18,6 +18,7 @@ const Chat = () => {
 
   const sendMessage = async () => {
     if (!circleChatOpen) return;
+    if (chatMessage.trim() === '') return;
 
     const {
       data: { playerData },
@@ -35,10 +36,9 @@ const Chat = () => {
       message: chatMessage,
     };
 
+    socket.emit('send-circle-chat', newMessage);
     setChatMessage('');
     scrollToBottom();
-
-    socket.emit('send-circle-chat', newMessage);
   };
 
   const handleChangeMessage = (event) => {
@@ -53,6 +53,7 @@ const Chat = () => {
         gameid: lobbyId,
       });
       if (listOfMessages !== 0) setMessages(listOfMessages);
+      scrollToBottom();
     } catch (error) {
       console.error(error);
     }
@@ -104,22 +105,14 @@ const Chat = () => {
                 <Link to={`/game/profile/${message.socketid}`}>
                   <Avatar src={message.avatar} size="lg" mr={2} />
                 </Link>
-                <Box
-                  borderRadius="8px"
-                  padding={2}
-                  backgroundColor={
-                    i % 2 === 0 && array[i - 1]?.socketid !== message.socketid
-                      ? '#667EEA'
-                      : '#69399A'
-                  }
-                >
-                  <Text color="brand.white" fontWeight="800">
+                <Box borderRadius="8px" padding={2} backgroundColor="white">
+                  <Text color="brand.main" fontWeight="800">
                     <Link to={`/game/profile/${message.socketid}`}>
                       {message.name}
                     </Link>
                   </Text>
                   <Text
-                    color="brand.white"
+                    color="brand.offtext"
                     sx={{
                       whiteSpace: 'normal',
                       wordWrap: 'break-all',
@@ -154,6 +147,11 @@ const Chat = () => {
               value={chatMessage}
               onChange={handleChangeMessage}
               isDisabled={!circleChatOpen}
+              onKeyPress={(event) => {
+                if (event.key === 'Enter') {
+                  sendMessage();
+                }
+              }}
             />
             <Button
               onClick={sendMessage}

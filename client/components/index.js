@@ -25,3 +25,5 @@ export { default as Newsfeed } from './newsfeed/newsfeed';
 export { default as Ratings } from './ratings/ratings';
 export { default as BlockPlayerModal } from './block-player-modal/block-player-modal';
 export { default as Blocked } from './blocked/blocked';
+export { default as InboxIcon } from './inbox-icon/inbox-icon';
+export { default as PrivateMessages } from './private-messages/private-messages';

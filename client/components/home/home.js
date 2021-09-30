@@ -118,7 +118,9 @@ const Home = () => {
                 name={player.name}
                 src={player.profilePicture}
                 size={avatarSize}
-                onClick={() => goToPlayerProfile(player.socketid)}
+                onClick={() =>
+                  player.name && goToPlayerProfile(player.socketid)
+                }
                 cursor="pointer"
                 borderColor="brand.main"
                 showBorder
@@ -127,7 +129,7 @@ const Home = () => {
               <Text fontSize="1.5em" fontWeight="600">
                 {player.name || <Spinner />}
               </Text>
-              {!isHost && player.socketid !== socket.id && (
+              {!isHost && player.socketid !== socket.id && player.name && (
                 <Button
                   onClick={() => startPrivateChat(player.socketid)}
                   colorScheme="purpleButton"
