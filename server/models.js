@@ -39,6 +39,15 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', UserSchema);
 
+const GameSchema = new mongoose.Schema({
+  gameid: {
+    type: String,
+    required: true,
+  },
+});
+
+const Game = mongoose.model('Game', GameSchema);
+
 const MessageSchema = new mongoose.Schema({
   gameid: {
     type: String,
@@ -176,4 +185,5 @@ module.exports = {
   newsFeedModel: NewsFeed,
   ratingsModel: Ratings,
   blockModel: Blocks,
+  gameModel: Game,
 };

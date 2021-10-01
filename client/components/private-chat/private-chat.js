@@ -1,5 +1,13 @@
 import React, { useEffect, useContext, useState, useRef } from 'react';
-import { Box, Stack, Avatar, Text, Textarea, Button } from '@chakra-ui/react';
+import {
+  Box,
+  Stack,
+  Avatar,
+  Text,
+  Textarea,
+  Button,
+  Spinner,
+} from '@chakra-ui/react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { CircleContext } from '../../context/circle';
@@ -13,6 +21,7 @@ const PrivateChat = () => {
   const [chatMessage, setChatMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [participants, setParticipants] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -20,6 +29,9 @@ const PrivateChat = () => {
 
   const sendMessage = async () => {
     if (chatMessage.trim() === '') return;
+    setChatMessage('');
+    setLoading(true);
+
     const {
       data: { playerData },
     } = await axios.post(`${serverString}/player-information`, {
@@ -36,8 +48,8 @@ const PrivateChat = () => {
       message: chatMessage,
     };
 
-    setChatMessage('');
     scrollToBottom();
+    setLoading(false);
     socket.emit('send-private-chat', newMessage);
   };
 
@@ -148,6 +160,7 @@ const PrivateChat = () => {
               resize="none"
               value={chatMessage}
               onChange={handleChangeMessage}
+              isDisabled={loading}
               onKeyPress={(event) => {
                 if (event.key === 'Enter') {
                   sendMessage();
@@ -158,8 +171,9 @@ const PrivateChat = () => {
               onClick={sendMessage}
               height="100%"
               colorScheme="blueButton"
+              isDisabled={loading}
             >
-              <SendIcon boxSize="2em" />
+              {loading ? <Spinner /> : <SendIcon boxSize="2em" />}
             </Button>
           </Stack>
         )}

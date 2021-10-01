@@ -14,6 +14,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { CircleContext } from '../../context/circle';
+import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 
 const SetupProfile = ({ onProfileSave }) => {
@@ -27,6 +28,7 @@ const SetupProfile = ({ onProfileSave }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { socket, serverString } = useContext(CircleContext);
+  let history = useHistory();
 
   const openImageUpload = () => {
     document.querySelector('#profile-upload').click();
@@ -112,6 +114,10 @@ const SetupProfile = ({ onProfileSave }) => {
       console.log(error);
       setLoading(false);
     }
+  };
+
+  const cancelSetup = () => {
+    history.push('/game');
   };
 
   const handleNameChange = (event) => {
@@ -215,14 +221,6 @@ const SetupProfile = ({ onProfileSave }) => {
         onChange={handleBioChange}
         isInvalid={isErrorField('bio')}
       />
-      <Button
-        colorScheme="purpleButton"
-        fontWeight="400"
-        onClick={handleSubmit}
-        disabled={loading}
-      >
-        {loading ? <Spinner /> : 'Submit Profile'}
-      </Button>
       {error && (
         <Alert status="error">
           <AlertIcon />
@@ -236,6 +234,18 @@ const SetupProfile = ({ onProfileSave }) => {
           />
         </Alert>
       )}
+      <Button
+        colorScheme="purpleButton"
+        fontWeight="400"
+        onClick={handleSubmit}
+        disabled={loading}
+      >
+        {loading ? <Spinner /> : 'Submit Profile'}
+      </Button>
+      <Button colorScheme="blueButton" fontWeight="400" onClick={cancelSetup}>
+        Cancel
+      </Button>
+
       <input
         onChange={handleImageUpload}
         type="file"

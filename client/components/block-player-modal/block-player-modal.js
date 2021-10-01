@@ -28,6 +28,7 @@ const BlockPlayerModal = () => {
   const [messages, setMessages] = useState([]);
   const [enteredMessage, setEnteredMessage] = useState('');
   const [fetchedPlayerList, setFetchedPlayerList] = useState([]);
+  const [winners, setWinners] = useState([]);
   const [blockedPlayer, setBlockedPlayer] = useState('');
   const [error, setError] = useState('');
   const {
@@ -125,6 +126,10 @@ const BlockPlayerModal = () => {
       setInfluencerChatId(null);
     });
 
+    socket.on('block-player-modal', ({ winnerOne, winnerTwo }) => {
+      setWinners([winnerOne, winnerTwo]);
+    });
+
     return () => {
       socket.off('influencer-chat');
       socket.off('block-error');
@@ -199,7 +204,10 @@ const BlockPlayerModal = () => {
               placeholder="Select a Player"
             >
               {fetchedPlayerList.map((player) => {
-                if (player.socketid !== socket.id)
+                if (
+                  player.socketid !== socket.id &&
+                  !winners.includes(player.socketid)
+                )
                   return <option value={player.socketid}>{player.name}</option>;
               })}
             </Select>

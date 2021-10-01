@@ -15,6 +15,7 @@ const {
   newsFeedModel,
   ratingsModel,
   blockModel,
+  gameModel,
 } = require('./models');
 
 mongoose.connect(process.env.MONGODB_URI, {
@@ -46,12 +47,13 @@ const io = new Server(server, {
     origin: ['https://social-circle-game.vercel.app', 'http://localhost:3000'],
     methods: ['GET', 'POST'],
   },
+  transports: ['websocket'],
   pingInterval: 10000,
   pingTimeout: 10000,
 });
 
 app.get('/total-games', async (req, res) => {
-  const totalGames = await userModel.find().distinct('gameid');
+  const totalGames = await gameModel.count();
   res.json({ totalGames: totalGames.length });
 });
 
@@ -213,6 +215,18 @@ io.on('connection', (socket) => {
         } catch (error) {
           console.log(error);
         }
+      }
+
+      const newGame = {
+        gameid: newLobby,
+      };
+
+      const saveGame = new gameModel(newGame);
+
+      try {
+        await saveGame.save();
+      } catch (error) {
+        console.log(error);
       }
 
       console.log(
@@ -440,7 +454,7 @@ io.on('connection', (socket) => {
       io.to(gameid).emit('next-rating-last');
     }
 
-    if (ratingCount >= MAX_RATINGS) {
+    if (ratingCount >= MAX_RATINGS || updatedPlayerList.length <= 3) {
       io.to(gameid).emit('game-over', {
         winnerOne: updatedPlayerList[0].name,
         winnerTwo: updatedPlayerList[1].name,
@@ -453,7 +467,11 @@ io.on('connection', (socket) => {
     ratedScores.map((rating, i) => {
       if (i === 0 || i === 1) {
         const playerSocket = io.sockets.sockets.get(rating.socketid);
-        playerSocket.emit('block-player-modal', { influencerChat });
+        playerSocket.emit('block-player-modal', {
+          influencerChat,
+          winnerOne: updatedPlayerList[0].socketid,
+          winnerTwo: updatedPlayerList[1].socketid,
+        });
         playerSocket.join(influencerChat);
       }
     });
@@ -645,6 +663,18 @@ io.on('connection', (socket) => {
       }
     }
 
+    const newGame = {
+      gameid,
+    };
+
+    const saveGame = new gameModel(newGame);
+
+    try {
+      await saveGame.save();
+    } catch (error) {
+      console.log(error);
+    }
+
     io.to(gameid).emit('start-game', {
       gameid: gameid,
       hostid: hostid,
@@ -672,7 +702,15 @@ io.on('connection', (socket) => {
     try {
       const playerData = await userModel.findOneAndUpdate(
         { socketid: socket.id },
-        { disconnected: true, gameid: '' }
+        {
+          disconnected: true,
+          gameid: '',
+          profilePicture: '',
+          name: '',
+          age: '',
+          bio: '',
+          relationshipStatus: '',
+        }
       );
       if (!playerData) {
         try {
@@ -699,7 +737,17 @@ io.on('connection', (socket) => {
       } else {
         io.to(gameid).emit('host-disconnect');
         io.socketsLeave(gameid);
-        await userModel.updateMany({ gameid: gameid }, { gameid: '' });
+        await userModel.updateMany(
+          { gameid: gameid },
+          {
+            gameid: '',
+            profilePicture: '',
+            name: '',
+            age: '',
+            bio: '',
+            relationshipStatus: '',
+          }
+        );
         console.log('Host leave cleanup complete.');
       }
     } catch (error) {

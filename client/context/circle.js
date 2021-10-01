@@ -7,7 +7,9 @@ const socketString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
     : ''
 }`;
 
-export const socket = io(socketString);
+export const socket = io(socketString, {
+  transports: ['websocket'],
+});
 
 export const serverString = `${process.env.NEXT_PUBLIC_CIRCLE_SERVER}${
   process.env.NEXT_PUBLIC_CIRCLE_PORT
@@ -38,4 +40,6 @@ export const CircleContext = React.createContext({
   setInfluencerChatId: () => {},
   playersSubmittedRatings: [],
   setPlayersSubmittedRatings: () => {},
+  notification: 0,
+  setNotification: () => {},
 });

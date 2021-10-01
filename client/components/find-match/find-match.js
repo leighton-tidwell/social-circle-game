@@ -11,6 +11,7 @@ const FindMatch = () => {
   const toast = useToast();
   const { setLobbyId, setIsHost, socket } = useContext(CircleContext);
   let history = useHistory();
+  const matchFound = new Audio('/assets/sound/matchfound.wav');
 
   const handleCancelMatch = () => {
     socket.emit('stop-find-match');
@@ -19,6 +20,7 @@ const FindMatch = () => {
   useEffect(() => {
     socket.on('start-game', ({ gameid, hostid }) => {
       setLobbyId(gameid);
+      matchFound.play();
       if (hostid === socket.id) {
         setIsHost(true);
         toast({

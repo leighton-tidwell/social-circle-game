@@ -64,6 +64,10 @@ const Ratings = () => {
   const submitRatings = () => {
     try {
       const arrayOfRatings = [];
+
+      if (ratings.length !== playerList.length - 1)
+        throw new Error('You must give each player a rating.');
+
       for (const rating of ratings) {
         if (rating.rating === '')
           throw new Error('You must give each player a rating.');
@@ -112,6 +116,8 @@ const Ratings = () => {
     if (isHost && !playersSubmittedRatings.includes(player.socketid))
       return <Spinner />;
 
+    if (player.socketid === socket.id) return null;
+
     // If the current player has not submitted, and is not the host show rating
     if (!playersSubmittedRatings.includes(socket.id) && !isHost)
       return (
@@ -121,11 +127,13 @@ const Ratings = () => {
           }
           placeholder="Rate"
         >
-          {playerList.map((player, i) => (
-            <option key={player.socketid} value={i + 1}>
-              {i + 1}
-            </option>
-          ))}
+          {playerList
+            .filter((player) => player.socketid !== socket.id)
+            .map((player, i) => (
+              <option key={player.socketid} value={i + 1}>
+                {i + 1}
+              </option>
+            ))}
         </Select>
       );
 

@@ -31,6 +31,7 @@ const GamePage = () => {
   const [showBlockPlayerModal, setShowBlockPlayerModal] = useState(false);
   const [influencerChatId, setInfluencerChatId] = useState(null);
   const [playersSubmittedRatings, setPlayersSubmittedRatings] = useState([]);
+  const [notification, setNotification] = useState(0);
 
   const contextValue = {
     lobbyId,
@@ -55,13 +56,15 @@ const GamePage = () => {
     setInfluencerChatId,
     playersSubmittedRatings,
     setPlayersSubmittedRatings,
+    notification,
+    setNotification,
   };
 
   const render = typeof window !== 'undefined';
   return (
     <>
       <Head>
-        <title>The Circle</title>
+        <title>The Circle | Game</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
         {/* Global site tag (gtag.js) - Google Analytics */}
         <script

@@ -1,5 +1,13 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
-import { Box, Stack, Avatar, Text, Textarea, Button } from '@chakra-ui/react';
+import {
+  Box,
+  Stack,
+  Avatar,
+  Text,
+  Textarea,
+  Button,
+  Spinner,
+} from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { CircleContext } from '../../context/circle';
@@ -8,6 +16,7 @@ import { CircleInterface, SendIcon } from '../../components';
 const Chat = () => {
   const [chatMessage, setChatMessage] = useState('');
   const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
   const { socket, serverString, lobbyId, isHost, circleChatOpen } =
     useContext(CircleContext);
   const messagesEndRef = useRef(null);
@@ -19,6 +28,9 @@ const Chat = () => {
   const sendMessage = async () => {
     if (!circleChatOpen) return;
     if (chatMessage.trim() === '') return;
+
+    setChatMessage('');
+    setLoading(true);
 
     const {
       data: { playerData },
@@ -37,7 +49,7 @@ const Chat = () => {
     };
 
     socket.emit('send-circle-chat', newMessage);
-    setChatMessage('');
+    setLoading(false);
     scrollToBottom();
   };
 
@@ -147,7 +159,7 @@ const Chat = () => {
               resize="none"
               value={chatMessage}
               onChange={handleChangeMessage}
-              isDisabled={!circleChatOpen}
+              isDisabled={!circleChatOpen || loading}
               onKeyPress={(event) => {
                 if (event.key === 'Enter') {
                   sendMessage();
@@ -158,9 +170,9 @@ const Chat = () => {
               onClick={sendMessage}
               height="100%"
               colorScheme="blueButton"
-              isDisabled={!circleChatOpen}
+              isDisabled={!circleChatOpen || loading}
             >
-              <SendIcon boxSize="2em" />
+              {loading ? <Spinner /> : <SendIcon boxSize="2em" />}
             </Button>
           </Stack>
         )}

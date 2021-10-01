@@ -1,6 +1,6 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import { Box, Flex, Stack, StackDivider, useToast } from '@chakra-ui/react';
-import { Link, useHistory } from 'react-router-dom';
+import { Link, useHistory, useLocation } from 'react-router-dom';
 import { CircleContext } from '../../context/circle';
 import axios from 'axios';
 import {
@@ -27,19 +27,13 @@ const CircleInterface = ({ children }) => {
     setShowBlockPlayerModal,
     setInfluencerChatId,
     lobbyId,
-    setLobbyId,
     serverString,
     setPlayersSubmittedRatings,
+    notification,
+    setNotification,
   } = useContext(CircleContext);
   let history = useHistory();
-
-  const getWindowHeight = () => {
-    const doc = document.documentElement;
-    doc.style.setProperty('--app-height', `${window.innerHeight}px`);
-  };
-
-  window.addEventListener('resize', getWindowHeight);
-  getWindowHeight();
+  const location = useLocation();
 
   useEffect(() => {
     if (!lobbyId) {
@@ -141,6 +135,16 @@ const CircleInterface = ({ children }) => {
       });
     });
 
+    socket.on('new-private-message', (message) => {
+      if (
+        message.socketid !== socket.id &&
+        location.pathname !== `/game/chat/${message.chatid}`
+      ) {
+        console.log('Notifing');
+        setNotification((notification) => notification + 1);
+      }
+    });
+
     socket.on('go-to-chat', ({ chatid }) => {
       history.push(`/game/chat/${chatid}`);
     });
@@ -177,7 +181,6 @@ const CircleInterface = ({ children }) => {
         isClosable: true,
         variant: 'left-accent',
       });
-      setProfileSetupCount((previousCount) => previousCount - 1);
     });
 
     socket.on('game-over', ({ winnerOne, winnerTwo }) => {
@@ -216,6 +219,7 @@ const CircleInterface = ({ children }) => {
       socket.off('blocked-player');
       socket.off('game-over');
       socket.off('next-rating-last');
+      socket.off('new-private-message');
     };
   }, []);
 
@@ -227,7 +231,7 @@ const CircleInterface = ({ children }) => {
     <Flex
       align="center"
       justify="center"
-      height="var(--app-height)"
+      height="100vh"
       width="100vw"
       background="linear-gradient(90deg,rgba(102, 126, 234, 1) 0%,rgba(105, 57, 154, 1) 100%)"
     >
@@ -289,7 +293,27 @@ const CircleInterface = ({ children }) => {
                   pr={{ xs: 2, lg: 6 }}
                   pb={{ xs: 2, lg: 3 }}
                   pt={{ xs: 3 }}
+                  position="relative"
                 >
+                  {notification !== 0 && (
+                    <Box
+                      backgroundColor="brand.main"
+                      position="absolute"
+                      top="5px"
+                      right={{ xs: '0', md: '1em' }}
+                      p={1}
+                      width={{ xs: '20px', md: '25px' }}
+                      height={{ xs: '20px', md: '25px' }}
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      borderRadius="50px"
+                      color="brand.white"
+                      fontWeight="800"
+                    >
+                      {notification}
+                    </Box>
+                  )}
                   <InboxIcon
                     color="brand.offtext"
                     fill="brand.offtext"

@@ -15,7 +15,8 @@ import { CircleContext } from '../../context/circle';
 import { CircleInterface, SendIcon } from '../../components';
 
 const PrivateMessages = () => {
-  const { socket, lobbyId, isHost, serverString } = useContext(CircleContext);
+  const { socket, lobbyId, isHost, serverString, setNotification } =
+    useContext(CircleContext);
   const [listOfPrivateChats, setListOfPrivateChats] = useState([]);
   let history = useHistory();
 
@@ -45,6 +46,7 @@ const PrivateMessages = () => {
     };
 
     fetchChats();
+    setNotification(0);
   }, []);
 
   return (
