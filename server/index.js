@@ -53,7 +53,7 @@ const io = new Server(server, {
 });
 
 app.get('/total-games', async (req, res) => {
-  const totalGames = await gameModel.count();
+  const totalGames = await gameModel.find();
   res.json({ totalGames: totalGames.length });
 });
 
