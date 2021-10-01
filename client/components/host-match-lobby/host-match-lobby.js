@@ -16,11 +16,13 @@ const HostMatchLobby = () => {
   const [players, setPlayers] = useState([1]);
   const [totalPlayers, setTotalPlayers] = useState(0);
   const [maxPlayers, setMaxPlayers] = useState(0);
+  const [loading, setLoading] = useState(false);
   const { lobbyId, isHost, socket } = useContext(CircleContext);
   const toast = useToast();
   let history = useHistory();
 
   const handleStartGame = () => {
+    setLoading(true);
     socket.emit('start-hosted-match', { gameid: lobbyId, hostid: socket.id });
   };
 
@@ -48,7 +50,7 @@ const HostMatchLobby = () => {
         return history.push('/game/home');
       }
 
-      return history.push('/game/edit-profile');
+      return history.push('/game/home');
     });
 
     socket.on('stop-hosted-match', () => {
@@ -101,7 +103,7 @@ const HostMatchLobby = () => {
           fontWeight="400"
           onClick={handleStartGame}
         >
-          Start Game
+          {loading ? <Spinner /> : 'Start Game'}
         </Button>
       )}
       <Link style={{ width: '100%' }} to="/game">
@@ -112,6 +114,7 @@ const HostMatchLobby = () => {
           height="2.5em"
           fontWeight="400"
           onClick={handleLeaveGame}
+          disabled={loading}
         >
           {isHost ? 'Cancel' : 'Leave'}
         </Button>

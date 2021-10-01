@@ -627,15 +627,19 @@ io.on('connection', (socket) => {
       const newUserData = {
         gameid,
         socketid: clientId,
+        host: false,
       };
 
       if (clientId === hostid) {
         newUserData.host = true;
       }
 
-      const newUser = new userModel(newUserData);
       try {
-        await newUser.save();
+        await userModel
+          .findOneAndUpdate({ socketid: clientId }, newUserData, {
+            upsert: true,
+          })
+          .exec();
       } catch (error) {
         console.log(error);
       }
