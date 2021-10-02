@@ -225,19 +225,18 @@ io.on('connection', (socket) => {
 
       try {
         await saveGame.save();
+        console.log(
+          io.sockets.adapter.rooms.get(newLobby),
+          'list of sockets in room'
+        );
+
+        io.to(newLobby).emit('start-game', {
+          gameid: newLobby,
+          hostid: hostSocketId,
+        });
       } catch (error) {
         console.log(error);
       }
-
-      console.log(
-        io.sockets.adapter.rooms.get(newLobby),
-        'list of sockets in room'
-      );
-
-      io.to(newLobby).emit('start-game', {
-        gameid: newLobby,
-        hostid: hostSocketId,
-      });
     }
   });
 
@@ -302,33 +301,32 @@ io.on('connection', (socket) => {
       participantNames,
     };
 
-    const saveChat = new privateChatModel(newChat);
     try {
+      const saveChat = new privateChatModel(newChat);
       await saveChat.save();
+      participants.forEach((participant) => {
+        const clientSocket = io.sockets.sockets.get(participant);
+        clientSocket.join(newChatId);
+        if (clientSocket.id !== socketid)
+          clientSocket.emit('new-private-chat', {
+            playerName: participantNames[0],
+            chatid: newChatId,
+          });
+      });
+
+      socket.emit('go-to-chat', { chatid: newChatId });
+
+      const host = await userModel.findOne({ gameid: gameid, host: true });
+      const hostSocket = host.socketid;
+      io.sockets.sockets.get(hostSocket).join(newChatId);
+
+      io.to(gameid).emit('host-new-private-chat', {
+        playerNames: participantNames,
+        chatid: newChatId,
+      });
     } catch (error) {
       console.log(error);
     }
-
-    participants.forEach((participant) => {
-      const clientSocket = io.sockets.sockets.get(participant);
-      clientSocket.join(newChatId);
-      if (clientSocket.id !== socketid)
-        clientSocket.emit('new-private-chat', {
-          playerName: participantNames[0],
-          chatid: newChatId,
-        });
-    });
-
-    socket.emit('go-to-chat', { chatid: newChatId });
-
-    const host = await userModel.findOne({ gameid: gameid, host: true });
-    const hostSocket = host.socketid;
-    io.sockets.sockets.get(hostSocket).join(newChatId);
-
-    io.to(gameid).emit('host-new-private-chat', {
-      playerNames: participantNames,
-      chatid: newChatId,
-    });
   });
 
   socket.on('send-private-chat', async (newMessage) => {
@@ -340,29 +338,26 @@ io.on('connection', (socket) => {
         avatar: user.profilePicture,
       };
 
-      const message = new privateMessageModel(saveMessage);
       try {
+        const message = new privateMessageModel(saveMessage);
         await message.save();
+        io.to(newMessage.chatid).emit('new-private-message', saveMessage);
       } catch (error) {
         console.log(error);
       }
-
-      io.to(newMessage.chatid).emit('new-private-message', saveMessage);
     } catch (error) {
       console.log(error);
     }
   });
 
   socket.on('new-newsfeed', async (message) => {
-    const saveMessage = new newsFeedModel(message);
-
     try {
+      const saveMessage = new newsFeedModel(message);
       await saveMessage.save();
+      io.to(message.gameid).emit('new-newsfeed');
     } catch (error) {
       console.log(error);
     }
-
-    io.to(message.gameid).emit('new-newsfeed');
   });
 
   socket.on('load-home', async (gameid) => {
@@ -390,10 +385,14 @@ io.on('connection', (socket) => {
         ratingCount,
       };
 
-      const saveRating = new ratingsModel(newRating);
-      await saveRating.save();
+      try {
+        const saveRating = new ratingsModel(newRating);
+        await saveRating.save();
 
-      io.to(gameid).emit('rating-submitted');
+        io.to(gameid).emit('rating-submitted');
+      } catch (error) {
+        console.log(error);
+      }
     }
   );
 
@@ -666,18 +665,16 @@ io.on('connection', (socket) => {
       gameid,
     };
 
-    const saveGame = new gameModel(newGame);
-
     try {
+      const saveGame = new gameModel(newGame);
       await saveGame.save();
+      io.to(gameid).emit('start-game', {
+        gameid: gameid,
+        hostid: hostid,
+      });
     } catch (error) {
       console.log(error);
     }
-
-    io.to(gameid).emit('start-game', {
-      gameid: gameid,
-      hostid: hostid,
-    });
   });
 
   socket.on('stop-hosted-match', ({ gameid, hostid }) => {
