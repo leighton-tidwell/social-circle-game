@@ -258,14 +258,13 @@ io.on('connection', (socket) => {
         avatar: user.profilePicture,
       };
 
-      const message = new messageModel(saveMessage);
       try {
+        const message = new messageModel(saveMessage);
         await message.save();
+        io.to(newMessage.gameid).emit('new-circle-message', saveMessage);
       } catch (error) {
         console.log(error);
       }
-
-      io.to(newMessage.gameid).emit('new-circle-message', saveMessage);
     } catch (error) {
       console.log(error);
     }
