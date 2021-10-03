@@ -20,16 +20,16 @@
     "express": "^4.17.1",
     "mongoose": "^6.0.6",
     "short-unique-id": "^4.4.2",
-    "socket.io": "^4.2.0"
-  },
-  "devDependencies": {
+    "socket.io": "^4.2.0",
     "@babel/cli": "^7.15.7",
     "@babel/core": "^7.15.5",
     "@babel/node": "^7.15.4",
     "@babel/preset-env": "^7.15.6",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "nodemon": "^2.0.12",
+    "nodemon": "^2.0.12"
+  },
+  "devDependencies": {
     "prettier": "^2.4.1",
     "xo": "^0.44.0"
   }
