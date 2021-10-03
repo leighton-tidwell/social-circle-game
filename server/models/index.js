@@ -1,0 +1,9 @@
+export { default as blockModel } from './block';
+export { default as gameModel } from './game';
+export { default as messageModel } from './message';
+export { default as newsFeedModel } from './newsFeed';
+export { default as privateChatModel } from './privateChat';
+export { default as privateMessageModel } from './privateMessage';
+export { default as ratingsModel } from './ratings';
+export { default as userModel } from './user';
+export { default as findMatchModel } from './findMatch';
